@@ -24,19 +24,19 @@
             width: 100%;
             max-width: 900px;
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .header h1 {
-            margin: 0 0 8px 0;
-            font-size: 1.8rem;
+            margin: 0 0 5px 0;
+            font-size: 1.7rem;
             color: #38bdf8;
         }
 
         .header p {
             margin: 0;
             color: #9ca3af;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .main-container {
@@ -64,13 +64,52 @@
             gap: 12px;
         }
 
+        /* بەشی گۆڕینی شێوازی پەخش (درێژی و پانی) */
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: #1f2937;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            padding: 8px;
+            border-radius: 12px;
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn:hover {
+            background: #374151;
+            border-color: #38bdf8;
+        }
+
+        .mode-btn.active {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+
         .video-wrapper {
             position: relative;
             width: 100%;
-            padding-top: 56.25%;
+            /* شێوازی سەرەتایی بە پانی (16:9) */
+            padding-top: 56.25%; 
             background: #000;
             border-radius: 16px;
             overflow: hidden;
+            transition: padding-top 0.3s ease;
+        }
+
+        /* ئەگەر شێوازی درێژی هەڵبژێردرێت (9:16) */
+        .video-wrapper.portrait {
+            padding-top: 177.77%;
         }
 
         .video-wrapper video {
@@ -84,7 +123,7 @@
         }
 
         .current-channel-title {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: #fff;
             display: flex;
@@ -187,14 +226,21 @@
 
     <header class="header">
         <h1>پەخشی ڕاستەوخۆی کەناڵە کوردییەکان</h1>
-        <p>سەیری کەناڵە ئاسمانییەکان بکە بە بێ پچڕان لەناو سایتەکەدا</p>
+        <p>سەیری کەناڵەکان بکە بە بێ پچڕان</p>
     </header>
 
     <div class="main-container">
-        <!-- Video Player -->
+        <!-- Video Player Section -->
         <div class="player-section">
-            <div class="video-wrapper">
-                <video id="tvPlayer" controls autoplay></video>
+            <!-- دوگمەکانی گۆڕینی شێوازی بینین (پانی و درێژی) -->
+            <div class="mode-buttons">
+                <button class="mode-btn active" id="landscapeBtn" onclick="setPlayerMode('landscape')">شێوازی پانی (Landscape)</button>
+                <button class="mode-btn" id="portraitBtn" onclick="setPlayerMode('portrait')">شێوازی درێژی (Portrait)</button>
+            </div>
+
+            <div class="video-wrapper" id="videoWrapper">
+                <!-- لێرەداcontrols هێڵراوەتەوە بۆ دەنگ و گەورەکردن، و تایبەتمەندییەکانی تر بە CSS شارراونەتەوە -->
+                <video id="tvPlayer" controls autoplay playsinline></video>
             </div>
             <div class="current-channel-title">
                 <span id="channelNameText">کەناڵێک هەڵبژێرە</span>
@@ -202,14 +248,13 @@
             </div>
         </div>
 
-        <!-- Channels List -->
+        <!-- Channels List Section -->
         <div class="channels-section">
             <input type="text" id="searchInput" class="search-box" placeholder="گەڕان بەدوای کەناڵدا..." onkeyup="filterChannels()">
             
             <div class="channels-list-scroll" id="channelsList">
                 
-                <!-- لینکی ڕاستەوخۆی ڕووداو -->
-                <div class="channel-btn active" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'https://live.rudaw.net/hls/rudaw-tv/master.m3u8', this)">
+                <div class="channel-btn" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'https://live.rudaw.net/hls/rudaw-tv/master.m3u8', this)">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>ڕووداو - Rudaw</span>
@@ -248,7 +293,24 @@
             }
         }
 
-        // کارپێکردنی ڕاستەوخۆی کەناڵی یەکەم لە کاتی کردنەوەی سایتەکەدا
+        // کۆنتڕۆڵکردنی شێوازی پانی یان درێژی
+        function setPlayerMode(mode) {
+            const wrapper = document.getElementById('videoWrapper');
+            const landscapeBtn = document.getElementById('landscapeBtn');
+            const portraitBtn = document.getElementById('portraitBtn');
+
+            if (mode === 'portrait') {
+                wrapper.classList.add('portrait');
+                portraitBtn.classList.add('active');
+                landscapeBtn.classList.remove('active');
+            } else {
+                wrapper.classList.remove('portrait');
+                landscapeBtn.classList.add('active');
+                portraitBtn.classList.remove('active');
+            }
+        }
+
+        // کارپێکردنی خۆکارانەی کەناڵی یەکەم لە کاتی کردنەوەی سایتەکەدا
         window.onload = function() {
             let firstChannel = document.querySelector('.channel-btn');
             if(firstChannel) {

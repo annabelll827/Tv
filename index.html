@@ -120,6 +120,52 @@
             border: none;
         }
 
+        .external-notice {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #111827;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .external-notice h3 {
+            margin: 0;
+            color: #38bdf8;
+            font-size: 1.2rem;
+        }
+
+        .external-notice p {
+            margin: 0;
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .external-btn {
+            background: #38bdf8;
+            color: #0b0f19;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-family: 'Vazirmatn', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .external-btn:hover {
+            opacity: 0.9;
+        }
+
         .current-channel-title {
             font-size: 1.05rem;
             font-weight: 700;
@@ -268,11 +314,43 @@
                     </div>
                 </div>
 
-                <!-- کەناڵی ئاڤا نیوز (لینکە فەرمییەکەی ava.news) -->
-                <div class="channel-btn" data-name="ئاڤا نیوز ava news" onclick="playChannel('ئاڤا نیوز - AVA News', 'https://ava.news/livewatch', 'iframe', this)">
+                <!-- کەناڵی ئاڤا نیوز -->
+                <div class="channel-btn" data-name="ئاڤا نیوز ava news" onclick="playChannel('ئاڤا نیوز - AVA News', 'https://ava.news/livewatch', 'notice', this)">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>ئاڤا نیوز - AVA News</span>
+                    </div>
+                </div>
+
+                <!-- کەناڵی کوردسات -->
+                <div class="channel-btn" data-name="کوردسات kurdsat" onclick="playChannel('کوردسات - Kurdsat', 'https://www.kurdsat.tv/ckb/watch-live', 'iframe', this)">
+                    <div class="channel-info">
+                        <div class="dot"></div>
+                        <span>کوردسات - Kurdsat</span>
+                    </div>
+                </div>
+
+                <!-- کەناڵی ئێن ئار تی -->
+                <div class="channel-btn" data-name="ئێن ئار تی nrt nrtv" onclick="playChannel('NRT - ئێن ئار تی', 'https://www.nrttv.com/streamNRT.aspx', 'iframe', this)">
+                    <div class="channel-info">
+                        <div class="dot"></div>
+                        <span>NRT - ئێن ئار تی</span>
+                    </div>
+                </div>
+
+                <!-- کەناڵی کوردماکس -->
+                <div class="channel-btn" data-name="کوردماکس kurdmax" onclick="playChannel('کوردماکس - Kurdmax', 'https://www.kurdmax.tv/ku/live-stream', 'iframe', this)">
+                    <div class="channel-info">
+                        <div class="dot"></div>
+                        <span>کوردماکس - Kurdmax</span>
+                    </div>
+                </div>
+
+                <!-- کەناڵی جی کەی سات -->
+                <div class="channel-btn" data-name="جی کەی سات gk sat gksat" onclick="playChannel('GK Sat - جی کەی سات', 'https://www.gksat.tv/KU/Live', 'iframe', this)">
+                    <div class="channel-info">
+                        <div class="dot"></div>
+                        <span>GK Sat - جی کەی سات</span>
                     </div>
                 </div>
 
@@ -315,6 +393,15 @@
             } else if (type === 'iframe') {
                 if (hls) { hls.destroy(); }
                 container.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+            } else if (type === 'notice') {
+                if (hls) { hls.destroy(); }
+                container.innerHTML = `
+                    <div class="external-notice">
+                        <h3>پەخشی ڕاستەوخۆی ئاڤا نیوز</h3>
+                        <p>بۆ بینینی پەخشەکە بە شێوازی فەرمی و بێ کێشە، کلیک لەسەر ئەم دوگمەیە بکە:</p>
+                        <a href="${url}" target="_blank" class="external-btn">کردنەوەی پەخشی ئاڤا 📺</a>
+                    </div>
+                `;
             }
         }
 

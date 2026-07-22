@@ -1,28 +1,106 @@
 <!DOCTYPE html>
-<html lang="ku">
+<html lang="ku" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My TV</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پەخشی ڕاستەوخۆی کەناڵی ئاڤا - AVA TV Live</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-<style>
-body{
-    margin:0;
-    background:#111;
-}
-iframe{
-    width:100%;
-    height:100vh;
-    border:none;
-}
-</style>
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #1e293b;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 24px;
+            color: #38bdf8;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .video-container {
+            width: 100%;
+            max-width: 900px;
+            background: #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+        }
+
+        .responsive-iframe {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* ڕێژەی ١٦:٩ */
+            height: 0;
+        }
+
+        .responsive-iframe iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        footer {
+            background-color: #1e293b;
+            text-align: center;
+            padding: 15px;
+            font-size: 13px;
+            color: #64748b;
+            border-top: 1px solid #334155;
+        }
+    </style>
 </head>
 <body>
 
-<iframe
-    src="https://kurditv.com/embed/1245/"
-    allowfullscreen>
-</iframe>
+    <header>
+        <h1>پەخشی ڕاستەوخۆی کەناڵی ئاڤا</h1>
+        <p>AVA TV Live Streaming</p>
+    </header>
+
+    <main>
+        <div class="video-container">
+            <div class="responsive-iframe">
+                <!-- لێنکی پەخشی نوێ -->
+                <iframe src="https://kurditv.com/embed/1245/" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; ٢٠٢٦ هەموو مافێک پارێزراوە بۆ وێبسایتەکەت</p>
+    </footer>
 
 </body>
 </html>

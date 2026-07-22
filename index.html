@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پەخشی ڕاستەوخۆی کەناڵەکانی تەلەڤیزیۆن</title>
+    <title>پەخشی ڕاستەوخۆ - مۆدێرن</title>
     <style>
         * {
             margin: 0;
@@ -13,57 +13,73 @@
         }
 
         body {
-            background-color: #0f172a;
+            /* باکگراوندێکی مۆدێرن و سەرنجڕاکێش */
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             color: #ffffff;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
 
+        /* ئیفێکتی شوشەیی بۆ هێدەر */
         header {
-            background-color: #1e293b;
-            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 25px 20px;
             text-align: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
 
         header h1 {
-            font-size: 24px;
-            color: #38bdf8;
-            margin-bottom: 5px;
+            font-size: 28px;
+            background: linear-gradient(to right, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
         }
 
         header p {
-            font-size: 14px;
-            color: #94a3b8;
+            font-size: 15px;
+            color: #b0bec5;
+            font-weight: 300;
         }
 
+        /* دیزاینی نوێی دوگمەکان */
         .channel-selector {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            padding: 20px;
-            background-color: #111827;
+            gap: 20px;
+            padding: 30px 20px 10px;
         }
 
         .channel-btn {
-            background-color: #334155;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 12px 30px;
+            border-radius: 50px; /* شێوەی هێلکەیی مۆدێرن */
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(5px);
         }
 
         .channel-btn:hover {
-            background-color: #475569;
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
         }
 
+        /* کاتێک کەناڵەکە هەڵبژێردراوە */
         .channel-btn.active {
-            background-color: #0284c7;
-            box-shadow: 0 0 15px rgba(2, 132, 199, 0.4);
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            border: none;
+            box-shadow: 0 8px 20px rgba(0, 242, 254, 0.4);
+            transform: translateY(-2px);
+            color: #000;
         }
 
         main {
@@ -74,25 +90,37 @@
             padding: 20px;
         }
 
+        /* چوارچێوەی ڤیدیۆکە */
         .video-container {
             width: 100%;
-            max-width: 900px;
-            background: #1e293b;
-            border-radius: 12px;
+            max-width: 950px;
+            background: #000000;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-            border: 1px solid #334155;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 242, 254, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             display: none;
+            transform: scale(0.98);
+            animation: fadeIn 0.5s forwards;
+        }
+
+        /* ئەنیمەیشنی دەرکەوتنی ڤیدیۆکە */
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .video-container.active {
             display: block;
+            opacity: 0;
         }
 
         .responsive-iframe {
             position: relative;
             width: 100%;
-            padding-bottom: 56.25%; /* ڕێژەی ١٦:٩ */
+            padding-bottom: 56.25%;
             height: 0;
         }
 
@@ -106,25 +134,25 @@
         }
 
         footer {
-            background-color: #1e293b;
+            background: rgba(0, 0, 0, 0.3);
             text-align: center;
-            padding: 15px;
-            font-size: 13px;
-            color: #64748b;
-            border-top: 1px solid #334155;
+            padding: 20px;
+            font-size: 14px;
+            color: #78909c;
+            backdrop-filter: blur(10px);
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>پەخشی ڕاستەوخۆی کەناڵەکانی تەلەڤیزیۆن</h1>
-        <p>Live TV Streaming</p>
+        <h1>پەخشی ڕاستەوخۆ</h1>
+        <p>بینەری باشترین کەناڵەکان بە ڕوونی بەرز بە</p>
     </header>
 
     <div class="channel-selector">
-        <button class="channel-btn active" onclick="switchChannel('ava', this)">کەناڵی ئاڤا</button>
-        <button class="channel-btn" onclick="switchChannel('rudaw', this)">کەناڵی ڕووداو</button>
+        <button class="channel-btn active" onclick="switchChannel('ava', this)">ئاڤا میدیا</button>
+        <button class="channel-btn" onclick="switchChannel('rudaw', this)">تۆڕی ڕووداو</button>
     </div>
 
     <main>
@@ -144,12 +172,12 @@
     </main>
 
     <footer>
-        <p>&copy; ٢٠٢٦ هەموو مافێک پارێزراوە بۆ وێبسایتەکەت</p>
+        <p>&copy; ٢٠٢٦ هەموو مافێک پارێزراوە - دیزاینی مۆدێرن</p>
     </footer>
 
     <script>
         function switchChannel(channelId, buttonElement) {
-            // ڕێگری کردن لە بەردەوامبوونی دەنگی کەناڵی پێشوو لە پاشبنەوادا
+            // ڕێگری کردن لە بەردەوامبوونی دەنگی کەناڵی پێشوو
             document.querySelectorAll('.video-container iframe').forEach(iframe => {
                 let src = iframe.src;
                 iframe.src = '';

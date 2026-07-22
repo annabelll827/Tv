@@ -146,39 +146,33 @@
     </header>
 
     <div class="channel-selector">
-        <button class="channel-btn active" onclick="switchChannel('ava', this)">کەناڵی ئاڤا</button>
-        <button class="channel-btn" onclick="switchChannel('rudaw', this)">کەناڵی ڕووداو</button>
-        <button class="channel-btn" onclick="switchChannel('k24', this)">کوردستان 24</button>
-        <button class="channel-btn" onclick="switchChannel('kurdistantv', this)">کوردستان تیڤی</button>
+        <button class="channel-btn active" onclick="switchChannel('ava', 'https://kurditv.com/embed/1245/', this)">کەناڵی ئاڤا</button>
+        <button class="channel-btn" onclick="switchChannel('rudaw', 'https://kurditv.com/embed/38/', this)">کەناڵی ڕووداو</button>
+        <button class="channel-btn" onclick="switchChannel('k24', 'https://www.youtube.com/embed/yZ7eZ8H_a1I', this)">کوردستان 24</button>
+        <button class="channel-btn" onclick="switchChannel('kurdistantv', 'https://kurditv.com/embed/72/', this)">کوردستان تیڤی</button>
     </div>
 
     <main>
         <!-- پەخشی کەناڵی ئاڤا -->
         <div id="ava" class="video-container active">
-            <div class="responsive-iframe">
-                <iframe src="https://kurditv.com/embed/1245/" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            <div class="responsive-iframe" id="wrap-ava">
+                <iframe src="https://kurditv.com/embed/1245/" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
             </div>
         </div>
 
         <!-- پەخشی کەناڵی ڕووداو -->
         <div id="rudaw" class="video-container">
-            <div class="responsive-iframe">
-                <iframe src="https://kurditv.com/embed/38/" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
-            </div>
+            <div class="responsive-iframe" id="wrap-rudaw"></div>
         </div>
 
         <!-- پەخشی کەناڵی کوردستان ٢٤ -->
         <div id="k24" class="video-container">
-            <div class="responsive-iframe">
-                <iframe src="https://www.youtube.com/embed/yZ7eZ8H_a1I" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
-            </div>
+            <div class="responsive-iframe" id="wrap-k24"></div>
         </div>
 
         <!-- پەخشی کەناڵی کوردستان تیڤی -->
         <div id="kurdistantv" class="video-container">
-            <div class="responsive-iframe">
-                <iframe src="https://kurditv.com/embed/72/" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
-            </div>
+            <div class="responsive-iframe" id="wrap-kurdistantv"></div>
         </div>
     </main>
 
@@ -187,18 +181,23 @@
     </footer>
 
     <script>
-        function switchChannel(channelId, buttonElement) {
-            document.querySelectorAll('.video-container iframe').forEach(iframe => {
-                let src = iframe.src;
-                iframe.src = '';
-                iframe.src = src;
+        function switchChannel(channelId, videoUrl, buttonElement) {
+            // سڕینەوەی ئایفڕەمی کەناڵەکانی تر بۆ ئەوەی دەنگ و باری پاشبنەوا ڕابگیرێت و کێشەی نەتۆرو بارکردن نەمێنێت
+            document.querySelectorAll('.responsive-iframe').forEach(wrap => {
+                wrap.innerHTML = '';
             });
 
             document.querySelectorAll('.video-container').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
 
-            document.getElementById(channelId).classList.add('active');
+            // چالاککردنی چوارچێوەی کەناڵی هەڵبژێردراو
+            let container = document.getElementById(channelId);
+            container.classList.add('active');
             buttonElement.classList.add('active');
+
+            // بارکردنی لینکی ڤیدیۆکە تەنها لە کاتی کلیککردندا بۆ خێراییەکی زۆرتر
+            let wrap = document.getElementById('wrap-' + channelId);
+            wrap.innerHTML = `<iframe src="${videoUrl}?autoplay=1" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
         }
     </script>
 

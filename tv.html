@@ -88,7 +88,7 @@
             color: #fff;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: space-between;
         }
 
         .live-badge {
@@ -110,27 +110,43 @@
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            max-height: 500px;
-            overflow-y: auto;
+            gap: 12px;
+            max-height: 520px;
         }
 
-        .channels-section h3 {
-            margin: 0 0 5px 0;
-            font-size: 1.1rem;
+        .search-box {
+            width: 100%;
+            background: #1f2937;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 10px 14px;
             color: #fff;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            padding-bottom: 8px;
+            font-family: 'Vazirmatn', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: #38bdf8;
+        }
+
+        .channels-list-scroll {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            max-height: 400px;
+            padding-left: 4px;
         }
 
         .channel-btn {
             background: #1f2937;
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 16px;
-            padding: 12px 16px;
+            padding: 10px 14px;
             color: #fff;
             font-family: 'Vazirmatn', sans-serif;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -177,10 +193,8 @@
     </header>
 
     <div class="main-container">
-        <!-- Video Player -->
         <div class="player-section">
-            <div class="video-wrapper" id="videoContainer">
-                <!-- لێرەدا پەخشی کەناڵەکە دەردەکەوێت -->
+            <div class="video-wrapper">
                 <iframe id="tvPlayer" src="" allowfullscreen></iframe>
             </div>
             <div class="current-channel-title">
@@ -189,55 +203,63 @@
             </div>
         </div>
 
-        <!-- Channels List -->
         <div class="channels-section">
-            <h3>کەناڵەکان</h3>
+            <input type="text" id="searchInput" class="search-box" placeholder="گەڕان بەدوای کەناڵدا..." onkeyup="filterChannels()">
             
-            <div class="channel-btn" onclick="playChannel('Rudaw', 'https://www.youtube.com/embed/live_stream?channel=UC8K3V2c4m7Z6n1x8v9b0a1w', this)">
-                <div class="channel-info">
-                    <div class="dot"></div>
-                    <span>ڕووداو - Rudaw</span>
+            <div class="channels-list-scroll" id="channelsList">
+                <div class="channel-btn" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'https://www.youtube.com/embed/live_stream?channel=UC8K3V2c4m7Z6n1x8v9b0a1w', this)">
+                    <div class="channel-info">
+                        <div class="dot"></div>
+                        <span>ڕووداو - Rudaw</span>
+                    </div>
+                </div>
+
+                <div class="channel-btn" data-name="کوردستان ٢٤ kurdistan 24 k24" onclick="playChannel('کوردستان ٢٤ - K24', 'https://www.youtube.com/embed/live_stream?channel=UCXw84a9t4tN2u4v1x9v1b0w', this)">
+                    <div class="channel-info">
+                        <div class="dot"></div>
+                        <span>کوردستان ٢٤ - K24</span>
+                    </div>
+                </div>
+
+                <div class="channel-btn" data-name="ئێن ئاڕ تی nrt" onclick="playChannel('ئێن ئاڕ تی - NRT', 'https://www.youtube.com/embed/live_stream?channel=UCj8y4a9t4tN2u4v1x9v1b0w', this)">
+                    <div class="channel-info">
+                        <div class="dot"></div>
+                        <span>ئێن ئاڕ تی - NRT</span>
+                    </div>
+                </div>
+
+                <div class="channel-btn" data-name="کەناڵ ٤ channel 4" onclick="playChannel('کەناڵ ٤ - Channel 4', 'https://www.youtube.com/embed/live_stream?channel=UCo8y4a9t4tN2u4v1x9v1b0w', this)">
+                    <div class="channel-info">
+                        <div class="dot"></div>
+                        <span>کەناڵ ٤ - Channel 4</span>
+                    </div>
                 </div>
             </div>
-
-            <div class="channel-btn" onclick="playChannel('Kurdistan 24', 'https://www.youtube.com/embed/live_stream?channel=UCXw84a9t4tN2u4v1x9v1b0w', this)">
-                <div class="channel-info">
-                    <div class="dot"></div>
-                    <span>کوردستان ٢٤ - K24</span>
-                </div>
-            </div>
-
-            <div class="channel-btn" onclick="playChannel('NRT', 'https://www.youtube.com/embed/live_stream?channel=UCj8y4a9t4tN2u4v1x9v1b0w', this)">
-                <div class="channel-info">
-                    <div class="dot"></div>
-                    <span>ئێن ئاڕ تی - NRT</span>
-                </div>
-            </div>
-
-            <div class="channel-btn" onclick="playChannel('Channel 4', 'https://www.youtube.com/embed/live_stream?channel=UCo8y4a9t4tN2u4v1x9v1b0w', this)">
-                <div class="channel-info">
-                    <div class="dot"></div>
-                    <span>کەناڵ ٤ - Channel 4</span>
-                </div>
-            </div>
-
         </div>
     </div>
 
     <script>
         function playChannel(name, embedUrl, element) {
-            // گۆڕینی ناوی کەناڵ لە سەرەوە
             document.getElementById('channelNameText').innerText = name;
-            
-            // گۆڕینی لینکی ڤیدیۆ لە پەخشکەردا
             document.getElementById('tvPlayer').src = embedUrl;
 
-            // لابردنی چالاکی لە هەموو دوگمەکان و دانانی لەسەر دوگمەی هەڵبژێردراو
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
         }
 
-        // بە وەکوبەخۆ (Default) یەکەم کەناڵ لە کاتی کردنەوەی سایتەکەدا کاردەکات ئەگەر لینکی ڕاستەوخۆت هەبێت
+        function filterChannels() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let channels = document.querySelectorAll('.channel-btn');
+
+            channels.forEach(channel => {
+                let name = channel.getAttribute('data-name').toLowerCase();
+                if (name.includes(input)) {
+                    channel.style.display = 'flex';
+                } else {
+                    channel.style.display = 'none';
+                }
+            });
+        }
     </script>
 
 </body>

@@ -109,8 +109,7 @@
             padding-top: 177.77%;
         }
 
-        .video-wrapper video,
-        .video-wrapper iframe {
+        .video-wrapper video {
             position: absolute;
             top: 0;
             left: 0;
@@ -224,7 +223,7 @@
 
     <header class="header">
         <h1>پەخشی ڕاستەوخۆی کەناڵە کوردییەکان</h1>
-        <p>سەیری کەناڵەکان بکە بە بێ پچڕان</p>
+        <p>سەیری کەناڵەکان بکە بە بێ پچڕان لەناو خودی سایتەکەدا</p>
     </header>
 
     <div class="main-container">
@@ -236,10 +235,7 @@
             </div>
 
             <div class="video-wrapper" id="videoWrapper">
-                <!-- شوێنی نیشاندانی ڤیدیۆ یان ئایفریم -->
-                <div id="playerContainer" style="width:100%; height:100%; position:absolute; top:0; left:0;">
-                    <video id="tvPlayer" controls autoplay playsinline style="width:100%; height:100%;"></video>
-                </div>
+                <video id="tvPlayer" controls autoplay playsinline></video>
             </div>
             <div class="current-channel-title">
                 <span id="channelNameText">کەناڵێک هەڵبژێرە</span>
@@ -254,15 +250,15 @@
             <div class="channels-list-scroll" id="channelsList">
                 
                 <!-- کەناڵی ڕووداو -->
-                <div class="channel-btn active" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'https://live.rudaw.net/hls/rudaw-tv/master.m3u8', 'hls', this)">
+                <div class="channel-btn active" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'https://live.rudaw.net/hls/rudaw-tv/master.m3u8', this)">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>ڕووداو - Rudaw</span>
                     </div>
                 </div>
 
-                <!-- کەناڵی کوردستان ٢٤ (یوتیوب)[span_2](start_span)[span_2](end_span) -->
-                <div class="channel-btn" data-name="کوردستان ٢٤ kurdistan 24 k24" onclick="playChannel('کوردستان ٢٤ - K24', 'https://www.youtube.com/embed/yZ7eZ8H_a1I?autoplay=1', 'youtube', this)">
+                <!-- کەناڵی کوردستان ٢٤ (بەکارهێنانی پلەیەری ڕاستەوخۆ) -->
+                <div class="channel-btn" data-name="کوردستان ٢٤ kurdistan 24 k24" onclick="playChannel('کوردستان ٢٤ - K24', 'https://live.kurdistan24.net/hls/k24.m3u8', this)">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>کوردستان ٢٤ - K24</span>
@@ -274,38 +270,30 @@
     </div>
 
     <script>
+        const video = document.getElementById('tvPlayer');
         let hls = null;
 
-        function playChannel(name, url, type, element) {
+        function playChannel(name, streamUrl, element) {
             document.getElementById('channelNameText').innerText = name;
             
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
 
-            const container = document.getElementById('playerContainer');
-
-            if (type === 'hls') {
-                if (hls) { hls.destroy(); }
-                container.innerHTML = '<video id="tvPlayer" controls autoplay playsinline style="width:100%; height:100%; object-fit:contain;"></video>';
-                const video = document.getElementById('tvPlayer');
-
-                if (Hls.isSupported()) {
-                    hls = new Hls();
-                    hls.loadSource(url);
-                    hls.attachMedia(video);
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        video.play();
-                    });
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = url;
-                    video.addEventListener('loadedmetadata', function() {
-                        video.play();
-                    });
+            if (Hls.isSupported()) {
+                if (hls) {
+                    hls.destroy();
                 }
-            } else if (type === 'youtube') {
-                if (hls) { hls.destroy(); }
-                // گۆڕینی بۆ ئایفریمی یوتوب بۆ پەخشی ڕاستەوخۆ بە بێ کێشە[span_3](start_span)[span_3](end_span)
-                container.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                hls = new Hls();
+                hls.loadSource(streamUrl);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = streamUrl;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play();
+                });
             }
         }
 

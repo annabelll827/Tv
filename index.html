@@ -149,27 +149,35 @@
         <button class="channel-btn active" onclick="switchChannel('ava', this)">کەناڵی ئاڤا</button>
         <button class="channel-btn" onclick="switchChannel('rudaw', this)">کەناڵی ڕووداو</button>
         <button class="channel-btn" onclick="switchChannel('k24', this)">کوردستان 24</button>
+        <button class="channel-btn" onclick="switchChannel('kurdistantv', this)">کوردستان تیڤی</button>
     </div>
 
     <main>
         <!-- پەخشی کەناڵی ئاڤا -->
         <div id="ava" class="video-container active">
             <div class="responsive-iframe">
-                <iframe src="https://kurditv.com/embed/1245/" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <iframe src="https://kurditv.com/embed/1245/" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
             </div>
         </div>
 
         <!-- پەخشی کەناڵی ڕووداو -->
         <div id="rudaw" class="video-container">
             <div class="responsive-iframe">
-                <iframe src="https://kurditv.com/embed/38/" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <iframe src="https://kurditv.com/embed/38/" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
             </div>
         </div>
 
         <!-- پەخشی کەناڵی کوردستان ٢٤ -->
         <div id="k24" class="video-container">
             <div class="responsive-iframe">
-                <iframe src="https://www.kurdistan24.net/en/live" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <iframe src="https://www.youtube.com/embed/yZ7eZ8H_a1I" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            </div>
+        </div>
+
+        <!-- پەخشی کەناڵی کوردستان تیڤی -->
+        <div id="kurdistantv" class="video-container">
+            <div class="responsive-iframe">
+                <iframe src="https://kurditv.com/embed/72/" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
             </div>
         </div>
     </main>

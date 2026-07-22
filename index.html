@@ -64,7 +64,6 @@
             gap: 12px;
         }
 
-        /* بەشی گۆڕینی شێوازی پەخش (درێژی و پانی) */
         .mode-buttons {
             display: flex;
             gap: 10px;
@@ -99,7 +98,6 @@
         .video-wrapper {
             position: relative;
             width: 100%;
-            /* شێوازی سەرەتایی بە پانی (16:9) */
             padding-top: 56.25%; 
             background: #000;
             border-radius: 16px;
@@ -107,7 +105,6 @@
             transition: padding-top 0.3s ease;
         }
 
-        /* ئەگەر شێوازی درێژی هەڵبژێردرێت (9:16) */
         .video-wrapper.portrait {
             padding-top: 177.77%;
         }
@@ -232,14 +229,12 @@
     <div class="main-container">
         <!-- Video Player Section -->
         <div class="player-section">
-            <!-- دوگمەکانی گۆڕینی شێوازی بینین (پانی و درێژی) -->
             <div class="mode-buttons">
                 <button class="mode-btn active" id="landscapeBtn" onclick="setPlayerMode('landscape')">شێوازی پانی (Landscape)</button>
                 <button class="mode-btn" id="portraitBtn" onclick="setPlayerMode('portrait')">شێوازی درێژی (Portrait)</button>
             </div>
 
             <div class="video-wrapper" id="videoWrapper">
-                <!-- لێرەداcontrols هێڵراوەتەوە بۆ دەنگ و گەورەکردن، و تایبەتمەندییەکانی تر بە CSS شارراونەتەوە -->
                 <video id="tvPlayer" controls autoplay playsinline></video>
             </div>
             <div class="current-channel-title">
@@ -254,10 +249,19 @@
             
             <div class="channels-list-scroll" id="channelsList">
                 
-                <div class="channel-btn" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'https://live.rudaw.net/hls/rudaw-tv/master.m3u8', this)">
+                <!-- کەناڵی ڕووداو -->
+                <div class="channel-btn active" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'https://live.rudaw.net/hls/rudaw-tv/master.m3u8', this)">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>ڕووداو - Rudaw</span>
+                    </div>
+                </div>
+
+                <!-- کەناڵی کوردستان ٢٤ (لایڤی یوتیوب یان لینکی هڵس ئەگەر هەبێت)[span_0](start_span)[span_0](end_span) -->
+                <div class="channel-btn" data-name="کوردستان ٢٤ kurdistan 24 k24" onclick="playChannel('کوردستان ٢٤ - K24', 'https://www.youtube.com/live/yZ7eZ8H_a1I?si=I9HAAYCfxR84yGlg', this)">
+                    <div class="channel-info">
+                        <div class="dot"></div>
+                        <span>کوردستان ٢٤ - K24</span>
                     </div>
                 </div>
 
@@ -275,7 +279,13 @@
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
 
-            if (Hls.isSupported()) {
+            // ئەگەر لینکەکە یوتیوب بوو یان مەتوودێکی تر، لێرە دەتوانرێت جیابکرێتەوە یان ڕاستەوخۆ بدرێتە hls ئەگەر m3u8 بوو
+            if (streamUrl.includes('youtube.com')) {
+                // بۆ یوتیوب باشترە iframe بەکاربیەین یان ئەگەر لینکی ڕاستەوخۆت هەبوو دەگۆڕدرێت
+                // با بۆ ئێستا لەسەر شێوازی hls بڕۆین پێش ئەوەی لینکی hlsـی k24 دابنێین
+            }
+
+            if (Hls.isSupported() && streamUrl.endsWith('.m3u8')) {
                 if (hls) {
                     hls.destroy();
                 }
@@ -285,15 +295,14 @@
                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                     video.play();
                 });
-            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            } else {
+                // بۆ هەر لینکێکی تری دەرەکی یان تێست
+                if (hls) { hls.destroy(); }
                 video.src = streamUrl;
-                video.addEventListener('loadedmetadata', function() {
-                    video.play();
-                });
+                video.play().catch(e => console.log(e));
             }
         }
 
-        // کۆنتڕۆڵکردنی شێوازی پانی یان درێژی
         function setPlayerMode(mode) {
             const wrapper = document.getElementById('videoWrapper');
             const landscapeBtn = document.getElementById('landscapeBtn');
@@ -310,7 +319,6 @@
             }
         }
 
-        // کارپێکردنی خۆکارانەی کەناڵی یەکەم لە کاتی کردنەوەی سایتەکەدا
         window.onload = function() {
             let firstChannel = document.querySelector('.channel-btn');
             if(firstChannel) {

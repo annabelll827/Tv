@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>پەخشی ڕاستەوخۆ - مۆدێرن</title>
+    <!-- HLS Player Library -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * {
@@ -149,7 +150,7 @@
 
     <div class="channel-selector">
         <button class="channel-btn active" onclick="switchChannel('ava', 'https://kurditv.com/embed/1245/', 'iframe', this)">کەناڵی ئاڤا</button>
-        <button class="channel-btn" onclick="switchChannel('rudaw', 'https://live.rudaw.net/hls/rudaw-tv/master.m3u8', 'hls', this)">ڕووداو</button>
+        <button class="channel-btn" onclick="switchChannel('rudaw', '/rudaw-live/rudaw-player.html', 'iframe', this)">ڕووداو</button>
         <button class="channel-btn" onclick="switchChannel('k24', 'https://www.youtube.com/embed/yZ7eZ8H_a1I', 'iframe', this)">کوردستان 24</button>
         <button class="channel-btn" onclick="switchChannel('kurdistantv', 'https://kurditv.com/embed/72/', 'iframe', this)">کوردستان تیڤی</button>
         <button class="channel-btn" onclick="switchChannel('channel8', 'https://kurditv.com/embed/1253/', 'iframe', this)">چەناڵ 8</button>
@@ -157,28 +158,34 @@
     </div>
 
     <main>
+        <!-- پەخشی کەناڵی ئاڤا -->
         <div id="ava" class="video-container active">
             <div class="responsive-iframe" id="wrap-ava">
                 <iframe src="https://kurditv.com/embed/1245/" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
             </div>
         </div>
 
+        <!-- پەخشی کەناڵی ڕووداو -->
         <div id="rudaw" class="video-container">
             <div class="responsive-iframe" id="wrap-rudaw"></div>
         </div>
 
+        <!-- پەخشی کەناڵی کوردستان ٢٤ -->
         <div id="k24" class="video-container">
             <div class="responsive-iframe" id="wrap-k24"></div>
         </div>
 
+        <!-- پەخشی کەناڵی کوردستان تیڤی -->
         <div id="kurdistantv" class="video-container">
             <div class="responsive-iframe" id="wrap-kurdistantv"></div>
         </div>
 
+        <!-- پەخشی کەناڵی چەناڵ 8 -->
         <div id="channel8" class="video-container">
             <div class="responsive-iframe" id="wrap-channel8"></div>
         </div>
 
+        <!-- پەخشی کەناڵی TRT Kurdi -->
         <div id="trtkurdi" class="video-container">
             <div class="responsive-iframe" id="wrap-trtkurdi"></div>
         </div>
@@ -232,7 +239,7 @@
                     });
                 }
             } else {
-                wrap.innerHTML = `<iframe src="${videoUrl}" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
+                wrap.innerHTML = `<iframe src="${videoUrl}" allowfullscreen="true" allow="autoplay; fullscreen; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
             }
         }
     </script>

@@ -120,13 +120,13 @@
             border: none;
         }
 
-        /* تایبەتمەندی بۆ شاردنەوەی مینیۆ و سەرەوەی پەخشی دەرەکی */
-        .iframe-crop {
+        /* بەشی زوومکردن و شاردنەوەی بەشە زیادەکان بە ته‌واوی */
+        .iframe-hidden-header {
             position: absolute;
-            top: -55px; 
-            left: 0;
-            width: 100%;
-            height: calc(100% + 55px);
+            top: -160px;
+            left: -10%;
+            width: 120%;
+            height: calc(100% + 220px);
             border: none;
         }
 
@@ -279,7 +279,7 @@
                 </div>
 
                 <!-- کەناڵی ئاڤا نیوز -->
-                <div class="channel-btn" data-name="ئاڤا نیوز ava news" onclick="playChannel('ئاڤا نیوز - AVA News', 'https://kurditv.com/1245/', 'iframe-crop', this)">
+                <div class="channel-btn" data-name="ئاڤا نیوز ava news" onclick="playChannel('ئاڤا نیوز - AVA News', 'https://kurditv.com/1245/', 'iframe-clean', this)">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>ئاڤا نیوز - AVA News</span>
@@ -322,9 +322,9 @@
             } else if (type === 'youtube') {
                 if (hls) { hls.destroy(); }
                 container.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-            } else if (type === 'iframe-crop') {
+            } else if (type === 'iframe-clean') {
                 if (hls) { hls.destroy(); }
-                container.innerHTML = `<iframe src="${url}" class="iframe-crop" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+                container.innerHTML = `<iframe src="${url}" class="iframe-hidden-header" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
             }
         }
 

@@ -38,7 +38,6 @@
             color: #94a3b8;
         }
 
-        /* بەشی دوگمەکانی گۆڕینی کەناڵ */
         .channel-selector {
             display: flex;
             justify-content: center;
@@ -123,7 +122,6 @@
         <p>Live TV Streaming</p>
     </header>
 
-    <!-- دوگمەکانی هەڵبژاردنی کەناڵ -->
     <div class="channel-selector">
         <button class="channel-btn active" onclick="switchChannel('ava', this)">کەناڵی ئاڤا</button>
         <button class="channel-btn" onclick="switchChannel('rudaw', this)">کەناڵی ڕووداو</button>
@@ -137,10 +135,10 @@
             </div>
         </div>
 
-        <!-- پەخشی کەناڵی ڕووداو -->
+        <!-- پەخشی کەناڵی ڕووداو (بە لێنکی فەرمی یوتیوب یان ستریمی ڕاستەوخۆ) -->
         <div id="rudaw" class="video-container">
             <div class="responsive-iframe">
-                <iframe src="https://kurditv.com/embed/38/?autoplay=1" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <iframe src="https://www.youtube.com/embed/live_stream?channel=UC58wZgY54Z_98Kk4-z4Fw_A&autoplay=1" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
             </div>
         </div>
     </main>
@@ -151,11 +149,9 @@
 
     <script>
         function switchChannel(channelId, buttonElement) {
-            // لابردنی چالاکی لە هەموو بەشەکان و دوگمەکان
             document.querySelectorAll('.video-container').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
 
-            // چالاککردنی کەناڵ و دوگمەی دیاریکراو
             document.getElementById(channelId).classList.add('active');
             buttonElement.classList.add('active');
         }

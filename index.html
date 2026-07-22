@@ -187,6 +187,7 @@
             align-items: center;
             justify-content: space-between;
             cursor: pointer;
+            text-decoration: none;
             transition: all 0.2s ease;
         }
 
@@ -217,6 +218,14 @@
         .channel-btn.active .dot {
             background-color: #ef4444;
             box-shadow: 0 0 8px #ef4444;
+        }
+        
+        .external-badge {
+            font-size: 0.75rem;
+            background: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+            padding: 2px 6px;
+            border-radius: 6px;
         }
     </style>
 </head>
@@ -268,13 +277,14 @@
                     </div>
                 </div>
 
-                <!-- کەناڵی ئاڤا نیوز -->
-                <div class="channel-btn" data-name="ئاڤا نیوز ava news" onclick="playChannel('ئاڤا نیوز - AVA News', 'https://www.youtube.com/embed/live_stream?channel=UC...&autoplay=1', 'youtube', this)">
+                <!-- کەناڵی ئاڤا نیوز (لینکە ڕاستەوخۆکەی ماڵپەڕ) -->
+                <a href="https://ava.news/livewatch" target="_blank" class="channel-btn" data-name="ئاڤا نیوز ava news">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>ئاڤا نیوز - AVA News</span>
                     </div>
-                </div>
+                    <span class="external-badge">سایت ↗</span>
+                </a>
 
             </div>
         </div>
@@ -333,7 +343,7 @@
 
         window.onload = function() {
             let firstChannel = document.querySelector('.channel-btn');
-            if(firstChannel) {
+            if(firstChannel && firstChannel.hasAttribute('onclick')) {
                 firstChannel.click();
             }
         };

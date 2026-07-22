@@ -13,7 +13,6 @@
         }
 
         body {
-            /* باکگراوندێکی مۆدێرن و سەرنجڕاکێش */
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             color: #ffffff;
             display: flex;
@@ -21,7 +20,6 @@
             min-height: 100vh;
         }
 
-        /* ئیفێکتی شوشەیی بۆ هێدەر */
         header {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(15px);
@@ -47,11 +45,11 @@
             font-weight: 300;
         }
 
-        /* دیزاینی نوێی دوگمەکان */
         .channel-selector {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
             padding: 30px 20px 10px;
         }
 
@@ -59,9 +57,9 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: #ffffff;
-            padding: 12px 30px;
-            border-radius: 50px; /* شێوەی هێلکەیی مۆدێرن */
-            font-size: 16px;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.4s ease;
@@ -73,7 +71,6 @@
             transform: translateY(-2px);
         }
 
-        /* کاتێک کەناڵەکە هەڵبژێردراوە */
         .channel-btn.active {
             background: linear-gradient(45deg, #00f2fe, #4facfe);
             border: none;
@@ -90,7 +87,6 @@
             padding: 20px;
         }
 
-        /* چوارچێوەی ڤیدیۆکە */
         .video-container {
             width: 100%;
             max-width: 950px;
@@ -104,7 +100,6 @@
             animation: fadeIn 0.5s forwards;
         }
 
-        /* ئەنیمەیشنی دەرکەوتنی ڤیدیۆکە */
         @keyframes fadeIn {
             to {
                 opacity: 1;
@@ -146,27 +141,35 @@
 <body>
 
     <header>
-        <h1>پەخشی ڕاستەوخۆ</h1>
+        <h1>پەخشی ڕاستەوخۆی کەناڵەکان</h1>
         <p>بینەری باشترین کەناڵەکان بە ڕوونی بەرز بە</p>
     </header>
 
     <div class="channel-selector">
-        <button class="channel-btn active" onclick="switchChannel('ava', this)">ئاڤا میدیا</button>
-        <button class="channel-btn" onclick="switchChannel('rudaw', this)">تۆڕی ڕووداو</button>
+        <button class="channel-btn active" onclick="switchChannel('ava', this)">کەناڵی ئاڤا</button>
+        <button class="channel-btn" onclick="switchChannel('rudaw', this)">کەناڵی ڕووداو</button>
+        <button class="channel-btn" onclick="switchChannel('k24', this)">کوردستان 24</button>
     </div>
 
     <main>
         <!-- پەخشی کەناڵی ئاڤا -->
         <div id="ava" class="video-container active">
             <div class="responsive-iframe">
-                <iframe src="https://kurditv.com/embed/1245/" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <iframe src="https://kurditv.com/embed/1245/" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
             </div>
         </div>
 
         <!-- پەخشی کەناڵی ڕووداو -->
         <div id="rudaw" class="video-container">
             <div class="responsive-iframe">
-                <iframe src="https://kurditv.com/embed/38/" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <iframe src="https://kurditv.com/embed/38/" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            </div>
+        </div>
+
+        <!-- پەخشی کەناڵی کوردستان ٢٤ -->
+        <div id="k24" class="video-container">
+            <div class="responsive-iframe">
+                <iframe src="https://www.kurdistan24.net/en/live" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
             </div>
         </div>
     </main>
@@ -177,7 +180,6 @@
 
     <script>
         function switchChannel(channelId, buttonElement) {
-            // ڕێگری کردن لە بەردەوامبوونی دەنگی کەناڵی پێشوو
             document.querySelectorAll('.video-container iframe').forEach(iframe => {
                 let src = iframe.src;
                 iframe.src = '';

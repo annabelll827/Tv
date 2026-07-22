@@ -128,17 +128,17 @@
     </div>
 
     <main>
-        <!-- پەخشی کەناڵی ئاڤا (یوتیوب) -->
+        <!-- پەخشی کەناڵی ئاڤا -->
         <div id="ava" class="video-container active">
             <div class="responsive-iframe">
-                <iframe src="https://www.youtube.com/embed/live_stream?channel=UC4gMv1z5B8uJ0aKx2wN8x1Q" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <iframe src="https://kurditv.com/embed/1245/" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
             </div>
         </div>
 
-        <!-- پەخشی کەناڵی ڕووداو (یوتیوب) -->
+        <!-- پەخشی کەناڵی ڕووداو -->
         <div id="rudaw" class="video-container">
             <div class="responsive-iframe">
-                <iframe src="https://www.youtube.com/embed/live_stream?channel=UCXw-a0vE2gVn0c6J4l1l15w" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <iframe src="https://kurditv.com/embed/38/" width="640" height="430" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
             </div>
         </div>
     </main>
@@ -149,7 +149,7 @@
 
     <script>
         function switchChannel(channelId, buttonElement) {
-            // پاککردنەوە و وەستاندنی ڤیدیۆکان لە کاتی گۆڕینی کەناڵ
+            // ڕێگری کردن لە بەردەوامبوونی دەنگی کەناڵی پێشوو لە پاشبنەوادا
             document.querySelectorAll('.video-container iframe').forEach(iframe => {
                 let src = iframe.src;
                 iframe.src = '';

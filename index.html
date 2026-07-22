@@ -131,14 +131,14 @@
         <!-- پەخشی کەناڵی ئاڤا -->
         <div id="ava" class="video-container active">
             <div class="responsive-iframe">
-                <iframe src="https://kurditv.com/embed/1245/?autoplay=1" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <iframe src="https://kurditv.com/embed/1245/" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" scrolling="no"></iframe>
             </div>
         </div>
 
-        <!-- پەخشی کەناڵی ڕووداو (بە لێنکی فەرمی یوتیوب یان ستریمی ڕاستەوخۆ) -->
+        <!-- پەخشی کەناڵی ڕووداو -->
         <div id="rudaw" class="video-container">
             <div class="responsive-iframe">
-                <iframe src="https://www.youtube.com/embed/live_stream?channel=UC58wZgY54Z_98Kk4-z4Fw_A&autoplay=1" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                <iframe src="https://kurditv.com/embed/38/" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" scrolling="no"></iframe>
             </div>
         </div>
     </main>
@@ -149,6 +149,13 @@
 
     <script>
         function switchChannel(channelId, buttonElement) {
+            // وەستاندنی ڤیدیۆی کەناڵی پێشوو بە ڕێفرێشکردنەوەی ناوەڕۆکی ئایفڕەیمەکە
+            document.querySelectorAll('.video-container iframe').forEach(iframe => {
+                let currentSrc = iframe.src;
+                iframe.src = '';
+                iframe.src = currentSrc;
+            });
+
             document.querySelectorAll('.video-container').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
 

@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>پەخشی ڕاستەوخۆ - مۆدێرن</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3/dist/plyr.css" />
-    <script src="https://cdn.jsdelivr.net/npm/plyr@3/dist/plyr.polyfilled.js"></script>
     <style>
         * {
             margin: 0;
@@ -122,14 +119,13 @@
             height: 0;
         }
 
-        .responsive-iframe iframe, .responsive-iframe video {
+        .responsive-iframe iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             border: 0;
-            object-fit: cover;
         }
 
         footer {
@@ -150,12 +146,12 @@
     </header>
 
     <div class="channel-selector">
-        <button class="channel-btn active" onclick="switchChannel('ava', 'https://kurditv.com/embed/1245/', 'iframe', this)">کەناڵی ئاڤا</button>
-        <button class="channel-btn" onclick="switchChannel('rudaw', 'https://live.rudaw.net/hls/rudaw-tv/master.m3u8', 'hls', this)">ڕووداو</button>
-        <button class="channel-btn" onclick="switchChannel('k24', 'https://www.youtube.com/embed/yZ7eZ8H_a1I', 'iframe', this)">کوردستان 24</button>
-        <button class="channel-btn" onclick="switchChannel('kurdistantv', 'https://kurditv.com/embed/72/', 'iframe', this)">کوردستان تیڤی</button>
-        <button class="channel-btn" onclick="switchChannel('channel8', 'https://kurditv.com/embed/1253/', 'iframe', this)">چەناڵ 8</button>
-        <button class="channel-btn" onclick="switchChannel('trtkurdi', 'https://kurditv.com/embed/119/', 'iframe', this)">TRT Kurdi</button>
+        <button class="channel-btn active" onclick="switchChannel('ava', 'https://kurditv.com/embed/1245/', this)">کەناڵی ئاڤا</button>
+        <button class="channel-btn" onclick="switchChannel('rudaw', 'https://kurditv.com/embed/74/', this)">ڕووداو</button>
+        <button class="channel-btn" onclick="switchChannel('k24', 'https://www.youtube.com/embed/yZ7eZ8H_a1I', this)">کوردستان 24</button>
+        <button class="channel-btn" onclick="switchChannel('kurdistantv', 'https://kurditv.com/embed/72/', this)">کوردستان تیڤی</button>
+        <button class="channel-btn" onclick="switchChannel('channel8', 'https://kurditv.com/embed/1253/', this)">چەناڵ 8</button>
+        <button class="channel-btn" onclick="switchChannel('trtkurdi', 'https://kurditv.com/embed/119/', this)">TRT Kurdi</button>
     </div>
 
     <main>
@@ -191,15 +187,7 @@
     </footer>
 
     <script>
-        let currentHls = null;
-
-        function switchChannel(channelId, videoUrl, type, buttonElement) {
-            // ئەگەر پێشتر پلەیەرێکی Hls هەبوو، بیسڕەوە بۆ ئەوەی میمۆری پاکببێتەوە
-            if (currentHls) {
-                currentHls.destroy();
-                currentHls = null;
-            }
-
+        function switchChannel(channelId, videoUrl, buttonElement) {
             document.querySelectorAll('.responsive-iframe').forEach(wrap => {
                 wrap.innerHTML = '';
             });
@@ -212,68 +200,7 @@
             buttonElement.classList.add('active');
 
             let wrap = document.getElementById('wrap-' + channelId);
-
-            if (type === 'hls') {
-                let video = document.createElement('video');
-                video.controls = true;
-                video.autoplay = true;
-                video.playsInline = true;
-                wrap.appendChild(video);
-
-                if (Hls.isSupported()) {
-                    let hlsConfig = {
-                        maxBufferLength: 30,
-                        maxMaxBufferLength: 60,
-                        liveSyncDurationCount: 1,
-                        liveMaxLatencyDurationCount: 3,
-                        enableWorker: true,
-                        lowLatencyMode: true
-                    };
-
-                    let hls = new Hls(hlsConfig);
-                    currentHls = hls;
-                    hls.loadSource(videoUrl);
-                    hls.attachMedia(video);
-
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        video.play().catch(() => {});
-                    });
-
-                    // چارەسەری خێرای پچڕان (ئەگەر وەستا، ڕاستەوخۆ دەبڕێتەوە لایڤ)
-                    video.addEventListener('timeupdate', function() {
-                        if (video.live && video.buffered.length > 0) {
-                            let liveEdge = video.buffered.end(video.buffered.length - 1);
-                            if (liveEdge - video.currentTime > 2) {
-                                video.currentTime = liveEdge - 0.2;
-                            }
-                        }
-                    });
-
-                    hls.on(Hls.Events.ERROR, function (event, data) {
-                        if (data.fatal) {
-                            switch (data.type) {
-                                case Hls.ErrorTypes.NETWORK_ERROR:
-                                    hls.startLoad();
-                                    break;
-                                case Hls.ErrorTypes.MEDIA_ERROR:
-                                    hls.recoverMediaError();
-                                    break;
-                                default:
-                                    hls.destroy();
-                                    break;
-                            }
-                        }
-                    });
-
-                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = videoUrl;
-                    video.addEventListener('loadedmetadata', function() {
-                        video.play().catch(() => {});
-                    });
-                }
-            } else {
-                wrap.innerHTML = `<iframe src="${videoUrl}" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
-            }
+            wrap.innerHTML = `<iframe src="${videoUrl}" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
         }
     </script>
 

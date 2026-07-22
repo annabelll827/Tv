@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kurdish Live TV - پەخشی ڕاستەوخۆی کەناڵە کوردییەکان</title>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <!-- HLS.js بۆ کارپێکردنی لینکە ڕاستەوخۆکانی IPTV -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * { box-sizing: border-box; }
@@ -54,7 +53,6 @@
             }
         }
 
-        /* Video Player Section */
         .player-section {
             background: #111827;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -69,7 +67,7 @@
         .video-wrapper {
             position: relative;
             width: 100%;
-            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            padding-top: 56.25%;
             background: #000;
             border-radius: 16px;
             overflow: hidden;
@@ -104,7 +102,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Channels List Section */
         .channels-section {
             background: #111827;
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -199,7 +196,6 @@
         <!-- Video Player -->
         <div class="player-section">
             <div class="video-wrapper">
-                <!-- ڤیدیۆ پلەیەری ناوخۆیی بۆ لینکە ڕاستەوخۆکان -->
                 <video id="tvPlayer" controls autoplay></video>
             </div>
             <div class="current-channel-title">
@@ -213,20 +209,28 @@
             <input type="text" id="searchInput" class="search-box" placeholder="گەڕان بەدوای کەناڵدا..." onkeyup="filterChannels()">
             
             <div class="channels-list-scroll" id="channelsList">
-                <!-- تێبینی: دەتوانیت لینکی M3U8 یان پەخشی ڕاستەوخۆی فەرمی لەم شوێنانەدا دابنێیت -->
-                <div class="channel-btn" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'لێرە_لینکی_ڕاستەوخۆی_مۆبایل_یاخود_m3u8_دابنە', this)">
+                
+                <div class="channel-btn" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'لێرە_لینکی_ڕاستەوخۆ_دابنە', this)">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>ڕووداو - Rudaw</span>
                     </div>
                 </div>
 
-                <div class="channel-btn" data-name="کوردستان ٢٤ kurdistan 24 k24" onclick="playChannel('کوردستان ٢٤ - K24', 'لێرە_لینکی_ڕاستەوخۆی_مۆبایل_یاخود_m3u8_دابنە', this)">
+                <div class="channel-btn" data-name="کوردستان ٢٤ kurdistan 24 k24" onclick="playChannel('کوردستان ٢٤ - K24', 'لێرە_لینکی_ڕاستەوخۆ_دابنە', this)">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>کوردستان ٢٤ - K24</span>
                     </div>
                 </div>
+
+                <div class="channel-btn" data-name="ئێن ئاڕ تی nrt" onclick="playChannel('ئێن ئاڕ تی - NRT', 'لێرە_لینکی_ڕاستەوخۆ_دابنە', this)">
+                    <div class="channel-info">
+                        <div class="dot"></div>
+                        <span>ئێن ئاڕ تی - NRT</span>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -241,7 +245,6 @@
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
 
-            // پشکنین بۆ ئەوەی ئایا براوسەرەکە پشتگیری HLS دەکات یان نا
             if (Hls.isSupported()) {
                 if (hls) {
                     hls.destroy();
@@ -249,13 +252,12 @@
                 hls = new Hls();
                 hls.loadSource(streamUrl);
                 hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED,function() {
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
                     video.play();
                 });
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // بۆ سیستەمی ئایفۆن و سافاری
                 video.src = streamUrl;
-                video.addEventListener('loadedmetadata',function() {
+                video.addEventListener('loadedmetadata', function() {
                     video.play();
                 });
             }

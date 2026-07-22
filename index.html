@@ -149,6 +149,8 @@
         <button class="channel-btn active" onclick="switchChannel('ava', 'https://kurditv.com/embed/1245/', this)">کەناڵی ئاڤا</button>
         <button class="channel-btn" onclick="switchChannel('k24', 'https://www.youtube.com/embed/yZ7eZ8H_a1I', this)">کوردستان 24</button>
         <button class="channel-btn" onclick="switchChannel('kurdistantv', 'https://kurditv.com/embed/72/', this)">کوردستان تیڤی</button>
+        <button class="channel-btn" onclick="switchChannel('channel8', 'https://kurditv.com/embed/1253/', this)">چەناڵ 8</button>
+        <button class="channel-btn" onclick="switchChannel('galikurdistan', 'https://www.krdtv.online/player/galikurdistan', this)">گەلی کوردستان</button>
     </div>
 
     <main>
@@ -167,6 +169,16 @@
         <!-- پەخشی کەناڵی کوردستان تیڤی -->
         <div id="kurdistantv" class="video-container">
             <div class="responsive-iframe" id="wrap-kurdistantv"></div>
+        </div>
+
+        <!-- پەخشی کەناڵی چەناڵ 8 -->
+        <div id="channel8" class="video-container">
+            <div class="responsive-iframe" id="wrap-channel8"></div>
+        </div>
+
+        <!-- پەخشی کەناڵی گەلی کوردستان -->
+        <div id="galikurdistan" class="video-container">
+            <div class="responsive-iframe" id="wrap-galikurdistan"></div>
         </div>
     </main>
 
@@ -188,7 +200,7 @@
             buttonElement.classList.add('active');
 
             let wrap = document.getElementById('wrap-' + channelId);
-            wrap.innerHTML = `<iframe src="${videoUrl}?autoplay=1" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
+            wrap.innerHTML = `<iframe src="${videoUrl}" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
         }
     </script>
 

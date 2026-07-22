@@ -219,21 +219,31 @@
 
                 if (Hls.isSupported()) {
                     let hlsConfig = {
-                        maxBufferLength: 60,         // زیادکردنی ماوەی کاش بۆ ئەوەی بە ئاسانی نەوەستێت
-                        maxMaxBufferLength: 600,
-                        liveSyncDurationCount: 4,    // نزیککردنەوەی پەخش لە کاتی ڕاستەقینە بە سەلامەتی
-                        liveMaxLatencyDurationCount: 12,
-                        highBufferWatchdogPeriod: 1,
-                        nudgeOffset: 0.1,
-                        nudgeMaxRetry: 5,
+                        liveSyncDurationCount: 2,       // کەمکردنەوەی مەودای دواکەوتن بۆ ئەوەی هەمیشە لەسەر لایڤی ڕاستەوخۆ بێت
+                        liveMaxLatencyDurationCount: 5,
+                        maxLiveSyncPlaybackRate: 1.5,   // خێراکردنی کاتی بۆ گەیشتن بە لایڤ ئەگەر دواکەوت
                         enableWorker: true
                     };
 
                     let hls = new Hls(hlsConfig);
                     hls.loadSource(videoUrl);
                     hls.attachMedia(video);
-                    
-                    // چاودێریکردن و خۆکارانە چارەسەرکردنی پچڕانی بچووک
+
+                    // کاتێک مانفێستەکە دەکرێتەوە، ڕاستەوخۆ پەخشەکە ڕادەکێشین بۆ کۆتا سەکندی لایڤ
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        video.play().catch(() => {});
+                    });
+
+                    // چاودێریکردن بۆ ئەوەی ئەگەر بۆ چەند چرکەیەک وەستا، خۆکارانە بیباتەوە سەر لایڤ
+                    video.addEventListener('waiting', function() {
+                        if (video.buffered.length > 0) {
+                            let liveEdge = video.buffered.end(video.buffered.length - 1);
+                            if (liveEdge - video.currentTime > 3) {
+                                video.currentTime = liveEdge - 0.5;
+                            }
+                        }
+                    });
+
                     hls.on(Hls.Events.ERROR, function (event, data) {
                         if (data.fatal) {
                             switch (data.type) {
@@ -252,6 +262,9 @@
 
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = videoUrl;
+                    video.addEventListener('loadedmetadata', function() {
+                        video.play().catch(() => {});
+                    });
                 }
             } else {
                 wrap.innerHTML = `<iframe src="${videoUrl}" allowfullscreen="true" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;

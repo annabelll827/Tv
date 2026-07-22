@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kurdish Live TV - پەخشی ڕاستەوخۆی کەناڵە کوردییەکان</title>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- HLS.js بۆ کارپێکردنی لینکە ڕاستەوخۆکانی IPTV -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -73,12 +75,13 @@
             overflow: hidden;
         }
 
-        .video-wrapper iframe, .video-wrapper video {
+        .video-wrapper video {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            object-fit: contain;
             border: none;
         }
 
@@ -189,13 +192,15 @@
 
     <header class="header">
         <h1>پەخشی ڕاستەوخۆی کەناڵە کوردییەکان</h1>
-        <p>بە ئاسانی و بە کوالێتی بەرز سێری کەناڵە ئاسمانییەکان بکە</p>
+        <p>سەیری کەناڵە ئاسمانییەکان بکە بە بێ پچڕان</p>
     </header>
 
     <div class="main-container">
+        <!-- Video Player -->
         <div class="player-section">
             <div class="video-wrapper">
-                <iframe id="tvPlayer" src="" allowfullscreen></iframe>
+                <!-- ڤیدیۆ پلەیەری ناوخۆیی بۆ لینکە ڕاستەوخۆکان -->
+                <video id="tvPlayer" controls autoplay></video>
             </div>
             <div class="current-channel-title">
                 <span id="channelNameText">کەناڵێک هەڵبژێرە</span>
@@ -203,35 +208,23 @@
             </div>
         </div>
 
+        <!-- Channels List -->
         <div class="channels-section">
             <input type="text" id="searchInput" class="search-box" placeholder="گەڕان بەدوای کەناڵدا..." onkeyup="filterChannels()">
             
             <div class="channels-list-scroll" id="channelsList">
-                <div class="channel-btn" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'https://www.youtube.com/embed/live_stream?channel=UC8K3V2c4m7Z6n1x8v9b0a1w', this)">
+                <!-- تێبینی: دەتوانیت لینکی M3U8 یان پەخشی ڕاستەوخۆی فەرمی لەم شوێنانەدا دابنێیت -->
+                <div class="channel-btn" data-name="ڕووداو rudaw" onclick="playChannel('ڕووداو - Rudaw', 'لێرە_لینکی_ڕاستەوخۆی_مۆبایل_یاخود_m3u8_دابنە', this)">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>ڕووداو - Rudaw</span>
                     </div>
                 </div>
 
-                <div class="channel-btn" data-name="کوردستان ٢٤ kurdistan 24 k24" onclick="playChannel('کوردستان ٢٤ - K24', 'https://www.youtube.com/embed/live_stream?channel=UCXw84a9t4tN2u4v1x9v1b0w', this)">
+                <div class="channel-btn" data-name="کوردستان ٢٤ kurdistan 24 k24" onclick="playChannel('کوردستان ٢٤ - K24', 'لێرە_لینکی_ڕاستەوخۆی_مۆبایل_یاخود_m3u8_دابنە', this)">
                     <div class="channel-info">
                         <div class="dot"></div>
                         <span>کوردستان ٢٤ - K24</span>
-                    </div>
-                </div>
-
-                <div class="channel-btn" data-name="ئێن ئاڕ تی nrt" onclick="playChannel('ئێن ئاڕ تی - NRT', 'https://www.youtube.com/embed/live_stream?channel=UCj8y4a9t4tN2u4v1x9v1b0w', this)">
-                    <div class="channel-info">
-                        <div class="dot"></div>
-                        <span>ئێن ئاڕ تی - NRT</span>
-                    </div>
-                </div>
-
-                <div class="channel-btn" data-name="کەناڵ ٤ channel 4" onclick="playChannel('کەناڵ ٤ - Channel 4', 'https://www.youtube.com/embed/live_stream?channel=UCo8y4a9t4tN2u4v1x9v1b0w', this)">
-                    <div class="channel-info">
-                        <div class="dot"></div>
-                        <span>کەناڵ ٤ - Channel 4</span>
                     </div>
                 </div>
             </div>
@@ -239,12 +232,33 @@
     </div>
 
     <script>
-        function playChannel(name, embedUrl, element) {
-            document.getElementById('channelNameText').innerText = name;
-            document.getElementById('tvPlayer').src = embedUrl;
+        const video = document.getElementById('tvPlayer');
+        let hls = null;
 
+        function playChannel(name, streamUrl, element) {
+            document.getElementById('channelNameText').innerText = name;
+            
             document.querySelectorAll('.channel-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
+
+            // پشکنین بۆ ئەوەی ئایا براوسەرەکە پشتگیری HLS دەکات یان نا
+            if (Hls.isSupported()) {
+                if (hls) {
+                    hls.destroy();
+                }
+                hls = new Hls();
+                hls.loadSource(streamUrl);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED,function() {
+                    video.play();
+                });
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                // بۆ سیستەمی ئایفۆن و سافاری
+                video.src = streamUrl;
+                video.addEventListener('loadedmetadata',function() {
+                    video.play();
+                });
+            }
         }
 
         function filterChannels() {

@@ -218,9 +218,38 @@
                 wrap.appendChild(video);
 
                 if (Hls.isSupported()) {
-                    let hls = new Hls();
+                    let hlsConfig = {
+                        maxBufferLength: 60,         // زیادکردنی ماوەی کاش بۆ ئەوەی بە ئاسانی نەوەستێت
+                        maxMaxBufferLength: 600,
+                        liveSyncDurationCount: 4,    // نزیککردنەوەی پەخش لە کاتی ڕاستەقینە بە سەلامەتی
+                        liveMaxLatencyDurationCount: 12,
+                        highBufferWatchdogPeriod: 1,
+                        nudgeOffset: 0.1,
+                        nudgeMaxRetry: 5,
+                        enableWorker: true
+                    };
+
+                    let hls = new Hls(hlsConfig);
                     hls.loadSource(videoUrl);
                     hls.attachMedia(video);
+                    
+                    // چاودێریکردن و خۆکارانە چارەسەرکردنی پچڕانی بچووک
+                    hls.on(Hls.Events.ERROR, function (event, data) {
+                        if (data.fatal) {
+                            switch (data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    hls.destroy();
+                                    break;
+                            }
+                        }
+                    });
+
                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                     video.src = videoUrl;
                 }

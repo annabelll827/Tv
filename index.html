@@ -166,7 +166,7 @@
               }
           },
           addChannel() {
-              if (!this.newChannelName || !this.newChannelUrl) return;
+              if (!this.newChannelName.trim() || !this.newChannelUrl.trim()) return;
               let badgeText = this.newChannelName.substring(0, 2).toUpperCase();
               
               const newCh = {
@@ -212,7 +212,7 @@
               this.editIsYt = false;
           },
           saveEdit(index) {
-              if (!this.editName || !this.editUrl) return;
+              if (!this.editName.trim() || !this.editUrl.trim()) return;
               let badgeText = this.editName.substring(0, 2).toUpperCase();
               this.channels[index] = {
                   name: this.editName,
@@ -266,8 +266,9 @@
             <p x-show="errorMessage" class="text-red-500 text-xs font-semibold">کۆدی هەڵەیە! تکایە Callvin.Tv بنووسە</p>
             
             <button 
+                type="button"
                 @click="unlock()"
-                class="login-btn w-full py-4 text-lg font-semibold shadow-lg shadow-indigo-600/20"
+                class="login-btn w-full py-4 text-lg font-semibold shadow-lg shadow-indigo-600/20 cursor-pointer"
             >
                 Unlock Channels
             </button>
@@ -283,7 +284,7 @@
                 <h1 class="text-xl font-bold tracking-wide text-indigo-400 flex items-center gap-2">
                     <i class="fa-solid fa-tv"></i> Nova TV
                 </h1>
-                <button @click="logout()" class="md:hidden bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-1 rounded-full text-xs font-medium">
+                <button type="button" @click="logout()" class="md:hidden bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-1 rounded-full text-xs font-medium cursor-pointer">
                     لۆگۆت
                 </button>
             </div>
@@ -300,7 +301,7 @@
                 />
             </div>
 
-            <button @click="logout()" class="hidden md:block bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-1.5 rounded-full text-xs font-medium hover:bg-red-500/20 transition">
+            <button type="button" @click="logout()" class="hidden md:block bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-1.5 rounded-full text-xs font-medium hover:bg-red-500/20 transition cursor-pointer">
                 لۆگۆت / داخستن
             </button>
         </header>
@@ -309,7 +310,7 @@
             
             <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
                 <template x-for="cat in ['All', 'Sports', 'News', 'Movies', 'General']">
-                    <button @click="selectedCategory = cat" 
+                    <button type="button" @click="selectedCategory = cat" 
                             :class="selectedCategory === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
                             class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer"
                             x-text="cat">
@@ -377,13 +378,13 @@
                         placeholder="کۆدی بەڕێوەبەر بنووسە"
                     />
                     <p x-show="adminError" class="text-red-500 text-xs font-semibold">کۆدی بەڕێوەبەر هەڵەیە!</p>
-                    <button @click="checkAdmin()" class="login-btn w-full py-3 font-semibold text-sm">چوونەژوورەوە بۆ بەڕێوەبردن</button>
+                    <button type="button" @click="checkAdmin()" class="login-btn w-full py-3 font-semibold text-sm cursor-pointer">چوونەژوورەوە بۆ بەڕێوەبردن</button>
                 </div>
 
                 <div x-show="isAdminUnlocked" class="space-y-6" style="display: none;">
                     <div class="flex justify-between items-center border-b border-slate-800 pb-4">
                         <span class="text-xs text-emerald-400 font-bold flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> دۆخی بەڕێوەبەر چالاکە</span>
-                        <button @click="lockAdmin()" class="text-xs text-red-400 hover:underline">دەرچوون لە بەڕێوەبەر</button>
+                        <button type="button" @click="lockAdmin()" class="text-xs text-red-400 hover:underline cursor-pointer">دەرچوون لە بەڕێوەبەر</button>
                     </div>
 
                     <div class="bg-slate-800/40 border border-slate-700/50 p-4 rounded-xl space-y-4">
@@ -405,7 +406,7 @@
                             <input type="checkbox" id="isYtCheck" x-model="newChannelIsYt" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
                             <label for="isYtCheck" class="text-xs text-slate-300">ئایا ئەمە لینکی یوتیوب/ایفرەیمە؟</label>
                         </div>
-                        <button @click="addChannel()" class="login-btn w-full py-2.5 text-xs font-semibold">زیادکردنی کەناڵ</button>
+                        <button type="button" @click.prevent="addChannel()" class="login-btn w-full py-2.5 text-xs font-semibold cursor-pointer">زیادکردنی کەناڵ</button>
                     </div>
 
                     <div class="space-y-3">
@@ -428,14 +429,14 @@
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-1.5">
-                                            <button @click="moveChannel(index, -1)" :disabled="index === 0" class="bg-slate-700/50 border border-slate-600 text-slate-300 px-2.5 py-1 rounded-lg text-xs hover:bg-slate-700 transition disabled:opacity-30">
+                                            <button type="button" @click="moveChannel(index, -1)" :disabled="index === 0" class="bg-slate-700/50 border border-slate-600 text-slate-300 px-2.5 py-1 rounded-lg text-xs hover:bg-slate-700 transition disabled:opacity-30 cursor-pointer">
                                                 <i class="fa-solid fa-arrow-up"></i>
                                             </button>
-                                            <button @click="moveChannel(index, 1)" :disabled="index === channels.length - 1" class="bg-slate-700/50 border border-slate-600 text-slate-300 px-2.5 py-1 rounded-lg text-xs hover:bg-slate-700 transition disabled:opacity-30">
+                                            <button type="button" @click="moveChannel(index, 1)" :disabled="index === channels.length - 1" class="bg-slate-700/50 border border-slate-600 text-slate-300 px-2.5 py-1 rounded-lg text-xs hover:bg-slate-700 transition disabled:opacity-30 cursor-pointer">
                                                 <i class="fa-solid fa-arrow-down"></i>
                                             </button>
-                                            <button @click="startEdit(index)" class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-2.5 py-1 rounded-lg text-xs hover:bg-indigo-500/20 transition">دەستکاری</button>
-                                            <button @click="deleteChannel(index)" class="bg-red-500/10 border border-red-500/20 text-red-400 px-2.5 py-1 rounded-lg text-xs hover:bg-red-500/20 transition">سڕینەوە</button>
+                                            <button type="button" @click="startEdit(index)" class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-2.5 py-1 rounded-lg text-xs hover:bg-indigo-500/20 transition cursor-pointer">دەستکاری</button>
+                                            <button type="button" @click="deleteChannel(index)" class="bg-red-500/10 border border-red-500/20 text-red-400 px-2.5 py-1 rounded-lg text-xs hover:bg-red-500/20 transition cursor-pointer">سڕینەوە</button>
                                         </div>
                                     </div>
 
@@ -458,8 +459,8 @@
                                             </div>
                                         </div>
                                         <div class="flex justify-end gap-2">
-                                            <button @click="cancelEdit()" class="bg-slate-700 text-slate-300 px-3 py-1 rounded text-xs">پاشگەزبوونەوە</button>
-                                            <button @click="saveEdit(index)" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-semibold">پاشەکەوتکردن</button>
+                                            <button type="button" @click="cancelEdit()" class="bg-slate-700 text-slate-300 px-3 py-1 rounded text-xs cursor-pointer">پاشگەزبوونەوە</button>
+                                            <button type="button" @click.prevent="saveEdit(index)" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-semibold cursor-pointer">پاشەکەوتکردن</button>
                                         </div>
                                     </div>
 
@@ -472,11 +473,11 @@
         </main>
 
         <nav class="bg-slate-900 border-t border-slate-800 py-3 px-6 flex justify-around items-center text-xs text-slate-400">
-            <button @click="currentTab = 'livetv'" :class="currentTab === 'livetv' ? 'text-indigo-400' : 'hover:text-white'" class="flex flex-col items-center gap-1 bg-transparent border-0 cursor-pointer"><i class="fa-solid fa-house text-lg"></i>Live TV</button>
+            <button type="button" @click="currentTab = 'livetv'" :class="currentTab === 'livetv' ? 'text-indigo-400' : 'hover:text-white'" class="flex flex-col items-center gap-1 bg-transparent border-0 cursor-pointer"><i class="fa-solid fa-house text-lg"></i>Live TV</button>
             <a href="#" class="flex flex-col items-center gap-1 hover:text-white"><i class="fa-solid fa-film text-lg"></i>Movies</a>
             <a href="#" class="flex flex-col items-center gap-1 hover:text-white"><i class="fa-solid fa-tv text-lg"></i>Series</a>
             <a href="#" class="flex flex-col items-center gap-1 hover:text-white"><i class="fa-solid fa-user text-lg"></i>Profile</a>
-            <button @click="currentTab = 'settings'" :class="currentTab === 'settings' ? 'text-indigo-400' : 'hover:text-white'" class="flex flex-col items-center gap-1 bg-transparent border-0 cursor-pointer"><i class="fa-solid fa-gear text-lg"></i>Settings</button>
+            <button type="button" @click="currentTab = 'settings'" :class="currentTab === 'settings' ? 'text-indigo-400' : 'hover:text-white'" class="flex flex-col items-center gap-1 bg-transparent border-0 cursor-pointer"><i class="fa-solid fa-gear text-lg"></i>Settings</button>
         </nav>
 
     </div>

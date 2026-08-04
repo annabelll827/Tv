@@ -121,8 +121,6 @@
           currentStream: '',
           isYoutube: false,
           youtubeUrl: '',
-          isPlaying: false,
-          isMuted: false,
           
           searchQuery: '',
           selectedCategory: 'All',
@@ -171,8 +169,8 @@
           changeChannel(name, streamUrl, isYt = false) {
               this.currentChannel = name;
               this.isYoutube = isYt;
-              this.isPlaying = true;
-              this.isMuted = false;
+              this.currentTab = 'livetv';
+              
               if (isYt) {
                   this.youtubeUrl = streamUrl;
                   if (window.player) {
@@ -183,41 +181,9 @@
                   if (window.player) {
                       window.player.src({ src: streamUrl, type: 'application/x-mpegURL' });
                       window.player.load();
-                      window.player.play().then(() => {
-                          this.isPlaying = true;
-                      }).catch(e => {
+                      window.player.play().catch(e => {
                           console.log('Auto-play prevented', e);
-                          this.isPlaying = false;
                       });
-                  }
-              }
-          },
-          togglePlay() {
-              if (this.isYoutube) return;
-              if (window.player) {
-                  if (window.player.paused()) {
-                      window.player.play();
-                      this.isPlaying = true;
-                  } else {
-                      window.player.pause();
-                      this.isPlaying = false;
-                  }
-              }
-          },
-          toggleMute() {
-              if (this.isYoutube) return;
-              if (window.player) {
-                  const muted = window.player.muted();
-                  window.player.muted(!muted);
-                  this.isMuted = !muted;
-              }
-          },
-          toggleFullscreen() {
-              if (window.player) {
-                  if (window.player.isFullscreen()) {
-                      window.player.exitFullscreen();
-                  } else {
-                      window.player.requestFullscreen();
                   }
               }
           },
@@ -274,7 +240,6 @@
 
               if (this.channels.length === 1) {
                   this.changeChannel(newCh.name, newCh.url, newCh.isYt);
-                  this.currentTab = 'livetv';
               }
 
               this.newChannelName = '';
@@ -422,8 +387,8 @@
         <main x-show="currentTab === 'livetv'" class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
             
             <!-- Video Player Column -->
-            <div class="lg:col-span-2 flex flex-col gap-4 h-full overflow-hidden">
-                <div class="glass-panel p-2 md:p-3 rounded-2xl shadow-2xl flex-1 w-full relative overflow-hidden flex flex-col border border-indigo-500/10">
+            <div class="lg:col-span-2 flex flex-col h-full overflow-hidden">
+                <div class="glass-panel p-2 md:p-3 rounded-2xl shadow-2xl h-full w-full relative overflow-hidden flex flex-col border border-indigo-500/10">
                     <div x-show="!isYoutube" class="w-full h-full flex-1 relative rounded-xl overflow-hidden">
                         <video-js id="tvPlayer" class="vjs-big-play-centered" controls preload="auto" data-setup='{}'>
                             <source :src="currentStream" type="application/x-mpegURL" />
@@ -431,37 +396,6 @@
                     </div>
                     <div x-show="isYoutube" class="w-full h-full flex-1 rounded-xl overflow-hidden">
                         <iframe class="w-full h-full border-0 rounded-xl" :src="youtubeUrl" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                    </div>
-                </div>
-
-                <!-- Player Controls & Channel Info -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
-                    <div class="glass-panel px-5 py-3 rounded-2xl flex items-center justify-between shadow-lg md:col-span-1">
-                        <div class="flex items-center gap-5 w-full justify-around">
-                            <button @click="togglePlay()" class="text-slate-300 hover:text-indigo-400 transition text-base cursor-pointer">
-                                <i :class="isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play'"></i>
-                            </button>
-                            <button @click="toggleMute()" class="text-slate-300 hover:text-indigo-400 transition text-base cursor-pointer">
-                                <i :class="isMuted ? 'fa-solid fa-volume-xmark text-rose-400' : 'fa-solid fa-volume-high'"></i>
-                            </button>
-                            <button @click="toggleFullscreen()" class="text-slate-300 hover:text-indigo-400 transition text-base cursor-pointer">
-                                <i class="fa-solid fa-expand"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="glass-panel px-5 py-3 rounded-2xl flex items-center justify-between shadow-lg md:col-span-2">
-                        <div class="flex items-center gap-3">
-                            <span class="relative flex h-3 w-3">
-                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                            </span>
-                            <div>
-                                <h2 class="text-sm font-bold text-white truncate max-w-[200px]" x-text="currentChannel || 'هیچ کەناڵێک هەڵنەبژێردراوە'"></h2>
-                                <p class="text-[10px] text-slate-400">پەخشی ڕاستەوخۆی Full HD</p>
-                            </div>
-                        </div>
-                        <span class="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded-lg font-bold">LIVE</span>
                     </div>
                 </div>
             </div>
@@ -478,7 +412,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3 overflow-y-auto pr-1 flex-1">
                     <template x-for="(channel, index) in filteredChannels" :key="index">
                         <div @click="changeChannel(channel.name, channel.url, channel.isYt)" 
-                             class="glass-card p-3 rounded-xl flex flex-col items-center text-center cursor-pointer group">
+                             class="glass-card p-3 rounded-xl flex flex-col items-center text-center cursor-pointer group active:scale-95 transition-transform">
                             <template x-if="channel.image">
                                 <img :src="channel.image" class="w-12 h-12 rounded-xl object-cover mb-2.5 shadow-md group-hover:scale-105 transition-transform duration-300" />
                             </template>

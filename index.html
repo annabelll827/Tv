@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ku" dir="ltr">
 <head>
@@ -32,7 +31,6 @@
             color: #f1f5f9;
         }
 
-        /* Video.js custom styling */
         .video-js {
             width: 100%;
             height: 100%;
@@ -51,7 +49,6 @@
             margin-left: -1.1em !important;
         }
 
-        /* Hide scrollbars */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -69,13 +66,13 @@
           categories: ['All', 'Sports', 'News', 'Movies', 'General', 'Kids'],
           
           // Player State
-          activeChannel: null,
+          activeChannelName: '',
           isPlayingModal: false,
           isYoutube: false,
           youtubeUrl: '',
           currentStream: '',
 
-          // Admin Modal & Lock State
+          // Admin Modal State
           showAdminModal: false,
           isAdminUnlocked: localStorage.getItem('nova_tv_admin') === 'true',
           adminInput: '',
@@ -94,15 +91,21 @@
           editIsYt: false,
           editCategory: 'General',
 
-          // Default sample channels
-          channels: JSON.parse(localStorage.getItem('nova_channels')) || [
-              { name: 'AVA HD', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', image: 'https://via.placeholder.com/300/0f172a/ffffff?text=AVA+HD', isYt: false, category: 'General' },
-              { name: 'Rudaw HD', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', image: 'https://via.placeholder.com/300/ea580c/ffffff?text=Rudaw+HD', isYt: false, category: 'News' },
-              { name: 'Channel 8', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', image: 'https://via.placeholder.com/300/dc2626/ffffff?text=Channel+8', isYt: false, category: 'News' },
-              { name: 'Al-Hadath', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', image: 'https://via.placeholder.com/300/1e1b4b/ffffff?text=Al-Hadath', isYt: false, category: 'News' },
-              { name: 'Al Arabiya', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', image: 'https://via.placeholder.com/300/581c87/ffffff?text=Al+Arabiya', isYt: false, category: 'News' },
-              { name: 'Kurdistan TV', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', image: 'https://via.placeholder.com/300/d97706/ffffff?text=Kurdistan+TV', isYt: false, category: 'General' }
-          ],
+          // Empty Channels Array (No default channels)
+          channels: JSON.parse(localStorage.getItem('nova_channels')) || [],
+
+          // Encryption / Obfuscation helper for Stream URLs
+          encodeData(str) {
+              try {
+                  return btoa(encodeURIComponent(str));
+              } catch(e) { return str; }
+          },
+
+          decodeData(str) {
+              try {
+                  return decodeURIComponent(atob(str));
+              } catch(e) { return str; }
+          },
 
           get filteredChannels() {
               return this.channels.filter(ch => {
@@ -113,18 +116,20 @@
           },
 
           openPlayer(channel) {
-              this.activeChannel = channel;
+              this.activeChannelName = channel.name;
               this.isYoutube = channel.isYt;
               this.isPlayingModal = true;
+              
+              const rawUrl = this.decodeData(channel.url);
 
               if (channel.isYt) {
-                  this.youtubeUrl = channel.url;
+                  this.youtubeUrl = rawUrl;
                   if (window.player) window.player.pause();
               } else {
-                  this.currentStream = channel.url;
+                  this.currentStream = rawUrl;
                   this.$nextTick(() => {
                       if (window.player) {
-                          window.player.src({ src: channel.url, type: 'application/x-mpegURL' });
+                          window.player.src({ src: rawUrl, type: 'application/x-mpegURL' });
                           window.player.load();
                           window.player.play().catch(e => console.log('Autoplay handled', e));
                       }
@@ -134,6 +139,8 @@
 
           closePlayer() {
               this.isPlayingModal = false;
+              this.currentStream = '';
+              this.youtubeUrl = '';
               if (window.player) window.player.pause();
           },
 
@@ -154,6 +161,7 @@
               this.isAdminUnlocked = false;
               localStorage.removeItem('nova_tv_admin');
               this.adminInput = '';
+              this.currentTab = 'livetv';
           },
 
           handleImageUpload(event, type) {
@@ -173,7 +181,7 @@
               
               const newCh = {
                   name: this.newChannelName,
-                  url: this.newChannelUrl,
+                  url: this.encodeData(this.newChannelUrl.trim()),
                   image: this.newChannelImage || 'https://via.placeholder.com/300/1e293b/ffffff?text=' + encodeURIComponent(this.newChannelName),
                   isYt: this.newChannelIsYt,
                   category: this.newChannelCategory || 'General'
@@ -195,7 +203,7 @@
               this.editingIndex = index;
               const ch = this.channels[index];
               this.editName = ch.name;
-              this.editUrl = ch.url;
+              this.editUrl = this.decodeData(ch.url);
               this.editImage = ch.image || '';
               this.editIsYt = ch.isYt || false;
               this.editCategory = ch.category || 'General';
@@ -209,7 +217,7 @@
               if (!this.editName || !this.editUrl) return;
               this.channels[index] = {
                   name: this.editName,
-                  url: this.editUrl,
+                  url: this.encodeData(this.editUrl.trim()),
                   image: this.editImage || 'https://via.placeholder.com/300/1e293b/ffffff?text=' + encodeURIComponent(this.editName),
                   isYt: this.editIsYt,
                   category: this.editCategory
@@ -251,7 +259,7 @@
             />
         </div>
 
-        <!-- Admin Icon Button in Header -->
+        <!-- Hidden Admin Trigger Button -->
         <button @click="if(!isAdminUnlocked){ showAdminModal = true; adminError = false; } else { currentTab = 'settings'; }" 
                 :class="isAdminUnlocked ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' : 'bg-[#161c2e] text-slate-400 border-slate-800 hover:text-white'"
                 class="w-10 h-10 rounded-full border flex items-center justify-center transition shrink-0">
@@ -294,7 +302,7 @@
         <!-- Empty State -->
         <div x-show="filteredChannels.length === 0" class="flex flex-col items-center justify-center py-20 text-slate-500 text-xs">
             <i class="fa-solid fa-tv text-4xl mb-3 text-slate-600"></i>
-            هیچ کەناڵێک نەدۆزرایەوە
+            هیچ کەناڵێک بەردەست نییە
         </div>
     </main>
 
@@ -319,124 +327,107 @@
         <p class="text-xs text-slate-500 mt-1">زانیاری هەژمارەکەت</p>
     </main>
 
-    <!-- Settings Tab (Admin Panel) -->
+    <!-- Settings Tab (Admin Panel Only Available when Logged In) -->
     <main x-show="currentTab === 'settings'" class="max-w-3xl mx-auto px-4 mt-6">
-        <div class="bg-[#161c2e] border border-slate-800 rounded-3xl p-5 md:p-7 shadow-2xl space-y-6">
+        <div x-show="isAdminUnlocked" class="bg-[#161c2e] border border-slate-800 rounded-3xl p-5 md:p-7 shadow-2xl space-y-6">
             <div class="border-b border-slate-800 pb-4 flex justify-between items-center">
-                <div>
-                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-gear text-cyan-400"></i> ڕێکخستنەکان و زیادرکردنی کەناڵ
-                    </h2>
-                </div>
-                <button x-show="isAdminUnlocked" @click="lockAdmin()" class="text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-1 rounded-xl hover:bg-rose-500/20 transition">
-                    دەرچوون لە بەڕێوەبەر
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-gear text-cyan-400"></i> بەڕێوەبردنی کەناڵەکان
+                </h2>
+                <button @click="lockAdmin()" class="text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-1 rounded-xl hover:bg-rose-500/20 transition">
+                    دەرچوون
                 </button>
             </div>
 
-            <!-- Locked Screen Prompt inside Settings if not authenticated -->
-            <div x-show="!isAdminUnlocked" class="space-y-4 max-w-sm mx-auto py-8 text-center">
-                <i class="fa-solid fa-lock text-4xl text-slate-600 mb-2"></i>
-                <h3 class="text-sm font-bold text-white">دەستگەیشتن قوفڵ کراوە</h3>
-                <p class="text-xs text-slate-400">تکایە لەڕێگەی ئایکۆنی ئەدمینی سەرەوە بچۆ ژوورەوە.</p>
-                <button @click="showAdminModal = true; adminError = false" class="w-full py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 font-bold text-xs text-white shadow-lg shadow-cyan-500/20 transition">
-                    چوونەژوورەوە وەک بەڕێوەبەر
-                </button>
-            </div>
-
-            <!-- Admin Unlocked Panel -->
-            <div x-show="isAdminUnlocked" class="space-y-6">
-                <!-- Add Channel Form -->
-                <div class="bg-[#0b0f19] p-4 rounded-2xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider">زیادکردنی کەناڵی نوێ</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <input type="text" x-model="newChannelName" placeholder="ناوی کەناڵ" class="bg-[#161c2e] border border-slate-700 px-3.5 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500" />
-                        <input type="file" id="channelImageInput" @change="handleImageUpload($event, 'new')" accept="image/*" class="bg-[#161c2e] border border-slate-700 px-3 py-1 rounded-xl text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500 file:text-white cursor-pointer" />
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <input type="text" x-model="newChannelUrl" placeholder="لینکی پەخش (.m3u8 یان iframe)" class="bg-[#161c2e] border border-slate-700 px-3.5 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500" />
-                        <select x-model="newChannelCategory" class="bg-[#161c2e] border border-slate-700 px-3.5 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500">
-                            <template x-for="cat in categories.filter(c => c !== 'All')" :key="cat">
-                                <option :value="cat" x-text="cat" class="bg-[#0b0f19] text-white"></option>
-                            </template>
-                        </select>
-                    </div>
-
-                    <div class="flex items-center gap-2 pt-1">
-                        <input type="checkbox" id="isYtCheck" x-model="newChannelIsYt" class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0" />
-                        <label for="isYtCheck" class="text-xs text-slate-300 cursor-pointer">ئایا ئەمە لینکی یوتیوب/ایفرەیمە؟</label>
-                    </div>
-
-                    <button @click="addChannel()" class="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition">زیادکردنی کەناڵ</button>
+            <!-- Add Channel Form -->
+            <div class="bg-[#0b0f19] p-4 rounded-2xl border border-slate-800 space-y-3">
+                <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider">زیادکردنی کەناڵی نوێ</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input type="text" x-model="newChannelName" placeholder="ناوی کەناڵ" class="bg-[#161c2e] border border-slate-700 px-3.5 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500" />
+                    <input type="file" id="channelImageInput" @change="handleImageUpload($event, 'new')" accept="image/*" class="bg-[#161c2e] border border-slate-700 px-3 py-1 rounded-xl text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500 file:text-white cursor-pointer" />
                 </div>
 
-                <!-- Manage Existing Channels -->
-                <div class="space-y-3">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">لیستی کەناڵەکان</h3>
-                    <div class="max-h-72 overflow-y-auto space-y-2 pr-1 no-scrollbar">
-                        <template x-for="(channel, index) in channels" :key="index">
-                            <div class="bg-[#0b0f19] p-3 rounded-2xl border border-slate-800 flex flex-col gap-2">
-                                <div class="flex justify-between items-center" x-show="editingIndex !== index">
-                                    <div class="flex items-center gap-3">
-                                        <img :src="channel.image" class="w-9 h-9 rounded-xl object-cover" />
-                                        <div>
-                                            <span class="text-xs font-bold text-white block" x-text="channel.name"></span>
-                                            <span class="text-[10px] text-cyan-400" x-text="channel.category || 'General'"></span>
-                                        </div>
-                                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input type="text" x-model="newChannelUrl" placeholder="لینکی پەخش (.m3u8 یان iframe)" class="bg-[#161c2e] border border-slate-700 px-3.5 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500" />
+                    <select x-model="newChannelCategory" class="bg-[#161c2e] border border-slate-700 px-3.5 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500">
+                        <template x-for="cat in categories.filter(c => c !== 'All')" :key="cat">
+                            <option :value="cat" x-text="cat" class="bg-[#0b0f19] text-white"></option>
+                        </template>
+                    </select>
+                </div>
 
-                                    <div class="flex items-center gap-1.5">
-                                        <button @click="moveChannel(index, -1)" :disabled="index === 0" class="bg-slate-800 text-slate-300 px-2 py-1 rounded-lg text-xs disabled:opacity-30">
-                                            <i class="fa-solid fa-arrow-up"></i>
-                                        </button>
-                                        <button @click="moveChannel(index, 1)" :disabled="index === channels.length - 1" class="bg-slate-800 text-slate-300 px-2 py-1 rounded-lg text-xs disabled:opacity-30">
-                                            <i class="fa-solid fa-arrow-down"></i>
-                                        </button>
-                                        <button @click="startEdit(index)" class="bg-cyan-500/10 text-cyan-400 px-2.5 py-1 rounded-lg text-xs">دەستکاری</button>
-                                        <button @click="deleteChannel(index)" class="bg-rose-500/10 text-rose-400 px-2.5 py-1 rounded-lg text-xs">سڕینەوە</button>
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="isYtCheck" x-model="newChannelIsYt" class="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0" />
+                    <label for="isYtCheck" class="text-xs text-slate-300 cursor-pointer">ئایا ئەمە لینکی یوتیوب/ایفرەیمە؟</label>
+                </div>
+
+                <button @click="addChannel()" class="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition">زیادکردنی کەناڵ</button>
+            </div>
+
+            <!-- Manage Existing Channels -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">لیستی کەناڵەکان</h3>
+                <div class="max-h-72 overflow-y-auto space-y-2 pr-1 no-scrollbar">
+                    <template x-for="(channel, index) in channels" :key="index">
+                        <div class="bg-[#0b0f19] p-3 rounded-2xl border border-slate-800 flex flex-col gap-2">
+                            <div class="flex justify-between items-center" x-show="editingIndex !== index">
+                                <div class="flex items-center gap-3">
+                                    <img :src="channel.image" class="w-9 h-9 rounded-xl object-cover" />
+                                    <div>
+                                        <span class="text-xs font-bold text-white block" x-text="channel.name"></span>
+                                        <span class="text-[10px] text-cyan-400" x-text="channel.category || 'General'"></span>
                                     </div>
                                 </div>
 
-                                <!-- Edit Box -->
-                                <div x-show="editingIndex === index" class="space-y-2 p-2 bg-[#161c2e] rounded-xl">
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <input type="text" x-model="editName" class="bg-[#0b0f19] border border-slate-700 px-2.5 py-1.5 rounded text-xs text-white" />
-                                        <input type="file" @change="handleImageUpload($event, 'edit')" accept="image/*" class="bg-[#0b0f19] border border-slate-700 px-2 py-1 rounded text-xs text-slate-300" />
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <input type="text" x-model="editUrl" class="bg-[#0b0f19] border border-slate-700 px-2.5 py-1.5 rounded text-xs text-white" />
-                                        <select x-model="editCategory" class="bg-[#0b0f19] border border-slate-700 px-2.5 py-1.5 rounded text-xs text-white">
-                                            <template x-for="cat in categories.filter(c => c !== 'All')" :key="cat">
-                                                <option :value="cat" x-text="cat"></option>
-                                            </template>
-                                        </select>
-                                    </div>
-                                    <div class="flex justify-end gap-2 pt-1">
-                                        <button @click="cancelEdit()" class="bg-slate-700 text-slate-300 px-3 py-1 rounded text-xs">پاشگەزبوونەوە</button>
-                                        <button @click="saveEdit(index)" class="bg-cyan-500 text-white px-3 py-1 rounded text-xs font-bold">پاشەکەوتکردن</button>
-                                    </div>
+                                <div class="flex items-center gap-1.5">
+                                    <button @click="moveChannel(index, -1)" :disabled="index === 0" class="bg-slate-800 text-slate-300 px-2 py-1 rounded-lg text-xs disabled:opacity-30">
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    </button>
+                                    <button @click="moveChannel(index, 1)" :disabled="index === channels.length - 1" class="bg-slate-800 text-slate-300 px-2 py-1 rounded-lg text-xs disabled:opacity-30">
+                                        <i class="fa-solid fa-arrow-down"></i>
+                                    </button>
+                                    <button @click="startEdit(index)" class="bg-cyan-500/10 text-cyan-400 px-2.5 py-1 rounded-lg text-xs">دەستکاری</button>
+                                    <button @click="deleteChannel(index)" class="bg-rose-500/10 text-rose-400 px-2.5 py-1 rounded-lg text-xs">سڕینەوە</button>
                                 </div>
                             </div>
-                        </template>
-                    </div>
+
+                            <!-- Edit Box -->
+                            <div x-show="editingIndex === index" class="space-y-2 p-2 bg-[#161c2e] rounded-xl">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" x-model="editName" class="bg-[#0b0f19] border border-slate-700 px-2.5 py-1.5 rounded text-xs text-white" />
+                                    <input type="file" @change="handleImageUpload($event, 'edit')" accept="image/*" class="bg-[#0b0f19] border border-slate-700 px-2 py-1 rounded text-xs text-slate-300" />
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="text" x-model="editUrl" class="bg-[#0b0f19] border border-slate-700 px-2.5 py-1.5 rounded text-xs text-white" />
+                                    <select x-model="editCategory" class="bg-[#0b0f19] border border-slate-700 px-2.5 py-1.5 rounded text-xs text-white">
+                                        <template x-for="cat in categories.filter(c => c !== 'All')" :key="cat">
+                                            <option :value="cat" x-text="cat"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                <div class="flex justify-end gap-2 pt-1">
+                                    <button @click="cancelEdit()" class="bg-slate-700 text-slate-300 px-3 py-1 rounded text-xs">پاشگەزبوونەوە</button>
+                                    <button @click="saveEdit(index)" class="bg-cyan-500 text-white px-3 py-1 rounded text-xs font-bold">پاشەکەوتکردن</button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Admin Authentication Modal -->
+    <!-- Admin Hidden Modal -->
     <div x-show="showAdminModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" style="display: none;">
         <div class="relative w-full max-w-sm bg-[#161c2e] border border-slate-800 rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center space-y-4">
             <button @click="showAdminModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
 
-            <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center mb-1">
-                <i class="fa-solid fa-user-shield text-2xl"></i>
+            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center mb-1">
+                <i class="fa-solid fa-user-shield text-xl"></i>
             </div>
-
-            <h3 class="text-base font-bold text-white">چوونەژوورەوەی بەڕێوەبەر</h3>
 
             <div class="w-full space-y-2">
                 <input 
@@ -444,7 +435,7 @@
                     x-model="adminInput" 
                     @keyup.enter="checkAdmin()"
                     class="w-full bg-[#0b0f19] border border-slate-700 px-4 py-3 rounded-2xl text-xs text-center font-bold text-white focus:outline-none focus:border-cyan-500"
-                    placeholder="کۆدی بەڕێوەبەر بنووسە"
+                    placeholder="کۆدەکە بنووسە"
                 />
                 <p x-show="adminError" class="text-rose-400 text-xs font-semibold">کۆدی بەڕێوەبەر هەڵەیە!</p>
             </div>
@@ -462,7 +453,7 @@
             <div class="flex items-center justify-between px-5 py-3 border-b border-slate-800 bg-[#0b0f19]">
                 <div class="flex items-center gap-3">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <h3 class="text-sm font-bold text-white truncate" x-text="activeChannel ? activeChannel.name : ''"></h3>
+                    <h3 class="text-sm font-bold text-white truncate" x-text="activeChannelName"></h3>
                 </div>
                 <button @click="closePlayer()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition">
                     <i class="fa-solid fa-xmark text-sm"></i>
@@ -483,7 +474,7 @@
         </div>
     </div>
 
-    <!-- Floating Dock Navigation Bar -->
+    <!-- Floating Navigation Bar -->
     <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-[#161c2e]/90 backdrop-blur-2xl border border-slate-700/60 rounded-full px-5 py-2.5 flex items-center justify-between gap-6 shadow-2xl shadow-black/80">
         
         <!-- Live TV -->
@@ -519,8 +510,8 @@
             <span class="absolute -top-1 -right-2 bg-amber-500 text-black font-extrabold text-[8px] px-1 rounded-sm">B</span>
         </button>
 
-        <!-- Settings -->
-        <button @click="currentTab = 'settings'" 
+        <!-- Settings (Only triggers Modal if locked, or opens Settings panel if unlocked) -->
+        <button @click="if(!isAdminUnlocked){ showAdminModal = true; adminError = false; } else { currentTab = 'settings'; }" 
                 :class="currentTab === 'settings' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'" 
                 class="flex flex-col items-center gap-1 transition">
             <i class="fa-solid fa-gear text-lg"></i>

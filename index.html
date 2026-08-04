@@ -1,51 +1,107 @@
+```html
 <!DOCTYPE html>
-<html lang="ku" dir="ltr">
+<html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nova TV - پەخشی تەلەڤیزیۆن</title>
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    <!-- Video.js -->
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
     
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Custom Fonts & Styling -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            background: radial-gradient(circle at center, #1e1e2e 0%, #0d0d15 100%);
+        * {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
         }
-        .code-input {
-            background-color: transparent;
-            border: 2px solid #4f46e5;
-            border-radius: 9999px;
-            color: white;
-            font-size: 1.2rem;
-            text-align: center;
+
+        body {
+            background: #090a0f;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.12) 0px, transparent 50%);
+            touch-action: manipulation;
+        }
+
+        /* Glassmorphism Panel */
+        .glass-panel {
+            background: rgba(18, 20, 29, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(26, 29, 43, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15);
+        }
+
+        .glass-input {
+            background: rgba(13, 15, 23, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
             transition: all 0.3s ease;
         }
-        .code-input:focus {
-            box-shadow: 0 0 15px rgba(79, 70, 229, 0.5);
+
+        .glass-input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
             outline: none;
         }
-        .login-btn {
-            background: linear-gradient(45deg, #4f46e5, #818cf8);
-            color: white;
-            border-radius: 9999px;
-            transition: all 0.3s ease;
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
         }
-        .login-btn:hover {
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.7);
-            transform: scale(1.02);
+        ::-webkit-scrollbar-track {
+            background: rgba(13, 15, 23, 0.5);
         }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.4);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
+
         .video-js {
             width: 100%;
             height: 100%;
-            border-radius: 0.75rem;
+            border-radius: 1rem;
             overflow: hidden;
         }
+
+        .vjs-big-play-button {
+            background-color: rgba(99, 102, 241, 0.8) !important;
+            border: none !important;
+            border-radius: 50% !important;
+            width: 2em !important;
+            height: 2em !important;
+            line-height: 2em !important;
+            margin-top: -1em !important;
+            margin-left: -1em !important;
+        }
+
+        /* Hide Scrollbar helper */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -55,7 +111,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen font-sans text-slate-100 flex flex-col justify-between" 
+<body class="h-screen w-screen overflow-hidden text-slate-100 flex flex-col justify-between"
       x-data="{ 
           isUnlocked: localStorage.getItem('nova_tv_unlocked') === 'true', 
           accessKey: '', 
@@ -65,51 +121,43 @@
           currentStream: '',
           isYoutube: false,
           youtubeUrl: '',
+          isPlaying: false,
+          isMuted: false,
+          
           searchQuery: '',
           selectedCategory: 'All',
+          categories: ['All', 'Sports', 'News', 'Movies', 'General', 'Kids'],
           
-          // Admin Panel State
           adminInput: '',
           isAdminUnlocked: localStorage.getItem('nova_tv_admin') === 'true',
           adminError: false,
           newChannelName: '',
           newChannelUrl: '',
           newChannelImage: '',
-          newChannelCategory: 'General',
           newChannelIsYt: false,
+          newChannelCategory: 'General',
           
-          // Edit State
           editingIndex: null,
           editName: '',
           editUrl: '',
           editImage: '',
-          editCategory: 'General',
           editIsYt: false,
+          editCategory: 'General',
           
-          // Channels List from localStorage
           channels: JSON.parse(localStorage.getItem('nova_channels')) || [],
 
           init() {
-              if (this.isUnlocked && this.channels.length > 0 && !this.currentChannel) {
+              if (this.isUnlocked && this.channels.length > 0) {
                   this.changeChannel(this.channels[0].name, this.channels[0].url, this.channels[0].isYt);
               }
           },
-
-          get filteredChannels() {
-              return this.channels.filter(ch => {
-                  let matchesCategory = this.selectedCategory === 'All' || ch.category === this.selectedCategory;
-                  let matchesSearch = ch.name.toLowerCase().includes(this.searchQuery.toLowerCase());
-                  return matchesCategory && matchesSearch;
-              });
-          },
-
           unlock() {
               if (this.accessKey.trim() === 'Callvin.Tv') {
                   this.isUnlocked = true;
                   localStorage.setItem('nova_tv_unlocked', 'true');
                   this.errorMessage = false;
                   if (this.channels.length > 0) {
-                      this.changeChannel(this.channels[0].name, this.channels[0].url, this.channels[0].isYt);
+                      setTimeout(() => { this.changeChannel(this.channels[0].name, this.channels[0].url, this.channels[0].isYt); }, 200);
                   }
               } else {
                   this.errorMessage = true;
@@ -123,6 +171,8 @@
           changeChannel(name, streamUrl, isYt = false) {
               this.currentChannel = name;
               this.isYoutube = isYt;
+              this.isPlaying = true;
+              this.isMuted = false;
               if (isYt) {
                   this.youtubeUrl = streamUrl;
                   if (window.player) {
@@ -133,12 +183,53 @@
                   if (window.player) {
                       window.player.src({ src: streamUrl, type: 'application/x-mpegURL' });
                       window.player.load();
-                      window.player.play().catch(e => console.log('Auto-play prevented'));
+                      window.player.play().then(() => {
+                          this.isPlaying = true;
+                      }).catch(e => {
+                          console.log('Auto-play prevented', e);
+                          this.isPlaying = false;
+                      });
                   }
               }
           },
+          togglePlay() {
+              if (this.isYoutube) return;
+              if (window.player) {
+                  if (window.player.paused()) {
+                      window.player.play();
+                      this.isPlaying = true;
+                  } else {
+                      window.player.pause();
+                      this.isPlaying = false;
+                  }
+              }
+          },
+          toggleMute() {
+              if (this.isYoutube) return;
+              if (window.player) {
+                  const muted = window.player.muted();
+                  window.player.muted(!muted);
+                  this.isMuted = !muted;
+              }
+          },
+          toggleFullscreen() {
+              if (window.player) {
+                  if (window.player.isFullscreen()) {
+                      window.player.exitFullscreen();
+                  } else {
+                      window.player.requestFullscreen();
+                  }
+              }
+          },
+          get filteredChannels() {
+              return this.channels.filter(ch => {
+                  const matchesSearch = ch.name.toLowerCase().includes(this.searchQuery.toLowerCase());
+                  const matchesCategory = this.selectedCategory === 'All' || (ch.category && ch.category === this.selectedCategory);
+                  return matchesSearch && matchesCategory;
+              });
+          },
           checkAdmin() {
-              if (this.adminInput.trim() === 'PDK') {
+              if (this.adminInput.trim() === '%ADMIN%NOVA%TV%CREATE%') {
                   this.isAdminUnlocked = true;
                   localStorage.setItem('nova_tv_admin', 'true');
                   this.adminError = false;
@@ -166,7 +257,7 @@
               }
           },
           addChannel() {
-              if (!this.newChannelName.trim() || !this.newChannelUrl.trim()) return;
+              if (!this.newChannelName || !this.newChannelUrl) return;
               let badgeText = this.newChannelName.substring(0, 2).toUpperCase();
               
               const newCh = {
@@ -174,14 +265,14 @@
                   url: this.newChannelUrl,
                   badge: badgeText,
                   image: this.newChannelImage || '',
-                  category: this.newChannelCategory,
-                  isYt: this.newChannelIsYt
+                  isYt: this.newChannelIsYt,
+                  category: this.newChannelCategory || 'General'
               };
 
               this.channels.push(newCh);
               localStorage.setItem('nova_channels', JSON.stringify(this.channels));
 
-              if (this.channels.length === 1 || !this.currentChannel) {
+              if (this.channels.length === 1) {
                   this.changeChannel(newCh.name, newCh.url, newCh.isYt);
                   this.currentTab = 'livetv';
               }
@@ -189,8 +280,8 @@
               this.newChannelName = '';
               this.newChannelUrl = '';
               this.newChannelImage = '';
-              this.newChannelCategory = 'General';
               this.newChannelIsYt = false;
+              this.newChannelCategory = 'General';
               const imgInput = document.getElementById('channelImageInput');
               if (imgInput) imgInput.value = '';
           },
@@ -200,27 +291,27 @@
               this.editName = ch.name;
               this.editUrl = ch.url;
               this.editImage = ch.image || '';
-              this.editCategory = ch.category || 'General';
               this.editIsYt = ch.isYt || false;
+              this.editCategory = ch.category || 'General';
           },
           cancelEdit() {
               this.editingIndex = null;
               this.editName = '';
               this.editUrl = '';
               this.editImage = '';
-              this.editCategory = 'General';
               this.editIsYt = false;
+              this.editCategory = 'General';
           },
           saveEdit(index) {
-              if (!this.editName.trim() || !this.editUrl.trim()) return;
+              if (!this.editName || !this.editUrl) return;
               let badgeText = this.editName.substring(0, 2).toUpperCase();
               this.channels[index] = {
                   name: this.editName,
                   url: this.editUrl,
                   badge: badgeText,
                   image: this.editImage,
-                  category: this.editCategory,
-                  isYt: this.editIsYt
+                  isYt: this.editIsYt,
+                  category: this.editCategory
               };
               localStorage.setItem('nova_channels', JSON.stringify(this.channels));
               this.cancelEdit();
@@ -236,231 +327,287 @@
               this.channels.splice(newIndex, 0, item);
               localStorage.setItem('nova_channels', JSON.stringify(this.channels));
           }
-      }"
-      x-init="init()">
+      }">
 
-    <div x-show="!isUnlocked" class="min-h-screen flex items-center justify-center p-4 w-full">
-        <div class="bg-slate-900/80 backdrop-blur-sm border border-slate-800 p-10 rounded-3xl shadow-2xl w-full max-w-md flex flex-col items-center text-center space-y-6">
+    <!-- Lock / Unlock Screen -->
+    <div x-show="!isUnlocked" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#090a0f]/90 backdrop-blur-2xl">
+        <div class="glass-panel p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-md flex flex-col items-center text-center space-y-6 relative overflow-hidden border border-indigo-500/20">
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
             
-            <div class="bg-slate-800 p-5 rounded-full shadow-inner">
-                <svg class="w-14 h-14 text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2a5 5 0 0 1 5 5v1h1a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V11a3 3 0 0 1 3-3h1V7a5 5 0 0 1 5-5zm3 8V7a3 3 0 0 0-6 0v3h6zm-6 4a2 2 0 0 0 0 4 2 2 0 0 0 0-4zm8 0a2 2 0 0 0 0 4 2 2 0 0 0 0-4z"/>
-                </svg>
+            <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-lock text-3xl text-white"></i>
             </div>
             
             <div class="space-y-2">
-                <h1 class="text-3xl font-extrabold text-white tracking-tight">Channels Locked</h1>
-                <p class="text-slate-400 text-sm max-w-sm">
-                    Default channels are hidden. Enter your Access Key to unlock and watch live TV.
+                <h1 class="text-3xl font-extrabold text-white tracking-tight">Nova TV</h1>
+                <p class="text-slate-400 text-xs leading-relaxed max-w-xs">
+                    تکایە کۆدی تایبەتی چوونەژوورەوە بنووسە بۆ چالاککردنی کەناڵەکان.
                 </p>
             </div>
             
-            <input 
-                type="text" 
-                x-model="accessKey" 
-                @keyup.enter="unlock()"
-                class="code-input w-full px-6 py-4"
-                placeholder="Enter Access Key"
-            />
+            <div class="w-full space-y-3">
+                <input 
+                    type="password" 
+                    x-model="accessKey" 
+                    @keyup.enter="unlock()"
+                    class="glass-input w-full px-5 py-3.5 rounded-2xl text-center text-sm font-bold tracking-widest"
+                    placeholder="کۆدی دەستگەیشتن بنووسە"
+                />
 
-            <p x-show="errorMessage" class="text-red-500 text-xs font-semibold">کۆدی هەڵەیە! تکایە Callvin.Tv بنووسە</p>
+                <p x-show="errorMessage" class="text-rose-400 text-xs font-medium flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i> کۆدی هەڵەیە! تکایە Callvin.Tv بنووسە
+                </p>
+            </div>
             
             <button 
-                type="button"
                 @click="unlock()"
-                class="login-btn w-full py-4 text-lg font-semibold shadow-lg shadow-indigo-600/20 cursor-pointer"
+                class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/30 transition-all duration-300 transform active:scale-95"
             >
-                Unlock Channels
+                بکردنەوەی کەناڵەکان
             </button>
-
         </div>
     </div>
 
-
-    <div x-show="isUnlocked" class="flex flex-col min-h-screen justify-between" style="display: none;">
+    <!-- Main Application UI -->
+    <div x-show="isUnlocked" class="flex flex-col h-full w-full overflow-hidden" style="display: none;">
         
-        <header class="bg-slate-900 border-b border-slate-800 py-3 px-4 md:px-6 shadow-md flex flex-col md:flex-row justify-between items-center gap-3">
+        <!-- Header Nav -->
+        <header class="glass-panel py-3 px-6 shadow-xl flex flex-col md:flex-row justify-between items-center gap-4 shrink-0 border-b border-white/5 z-20">
             <div class="flex items-center justify-between w-full md:w-auto">
-                <h1 class="text-xl font-bold tracking-wide text-indigo-400 flex items-center gap-2">
-                    <i class="fa-solid fa-tv"></i> Nova TV
-                </h1>
-                <button type="button" @click="logout()" class="md:hidden bg-red-500/10 border border-red-500/20 text-red-400 px-3 py-1 rounded-full text-xs font-medium cursor-pointer">
-                    لۆگۆت
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
+                        <i class="fa-solid fa-play text-xs text-white"></i>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-wide bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">Nova TV</span>
+                </div>
+
+                <button @click="logout()" class="md:hidden bg-rose-500/10 border border-rose-500/20 text-rose-400 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-rose-500/20 transition">
+                    <i class="fa-solid fa-power-off"></i>
                 </button>
             </div>
-            
-            <div class="relative w-full md:w-80">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                    <i class="fa-solid fa-search"></i>
-                </span>
-                <input 
-                    type="text" 
-                    x-model="searchQuery" 
-                    placeholder="Search channels..." 
-                    class="w-full bg-slate-800/80 border border-slate-700/60 rounded-full py-1.5 pl-9 pr-4 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 transition"
-                />
+
+            <!-- Search & Filter Controls -->
+            <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                <div class="relative w-full md:w-64">
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input 
+                        type="text" 
+                        x-model="searchQuery" 
+                        placeholder="گەڕان بۆ کەناڵ..." 
+                        class="glass-input text-xs text-white pr-9 pl-4 py-2 rounded-xl w-full focus:outline-none"
+                    />
+                </div>
+
+                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-1 md:pb-0">
+                    <template x-for="cat in categories" :key="cat">
+                        <button 
+                            @click="selectedCategory = cat"
+                            :class="selectedCategory === cat ? 'bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-600/30' : 'bg-slate-800/80 text-slate-400 hover:bg-slate-700/80'"
+                            class="px-3.5 py-1.5 rounded-xl text-xs whitespace-nowrap transition cursor-pointer border border-white/5"
+                            x-text="cat">
+                        </button>
+                    </template>
+                </div>
             </div>
 
-            <button type="button" @click="logout()" class="hidden md:block bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-1.5 rounded-full text-xs font-medium hover:bg-red-500/20 transition cursor-pointer">
-                لۆگۆت / داخستن
+            <button @click="logout()" class="hidden md:flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-rose-500/20 transition">
+                <i class="fa-solid fa-power-off text-xs"></i>
+                داخستن
             </button>
         </header>
 
-        <main x-show="currentTab === 'livetv'" class="max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col gap-6 my-auto">
+        <!-- Main Content Area -->
+        <main x-show="currentTab === 'livetv'" class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden">
             
-            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-                <template x-for="cat in ['All', 'Sports', 'News', 'Movies', 'General']">
-                    <button type="button" @click="selectedCategory = cat" 
-                            :class="selectedCategory === cat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800 border border-slate-700/50'"
-                            class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer"
-                            x-text="cat">
-                    </button>
-                </template>
+            <!-- Video Player Column -->
+            <div class="lg:col-span-2 flex flex-col gap-4 h-full overflow-hidden">
+                <div class="glass-panel p-2 md:p-3 rounded-2xl shadow-2xl flex-1 w-full relative overflow-hidden flex flex-col border border-indigo-500/10">
+                    <div x-show="!isYoutube" class="w-full h-full flex-1 relative rounded-xl overflow-hidden">
+                        <video-js id="tvPlayer" class="vjs-big-play-centered" controls preload="auto" data-setup='{}'>
+                            <source :src="currentStream" type="application/x-mpegURL" />
+                        </video-js>
+                    </div>
+                    <div x-show="isYoutube" class="w-full h-full flex-1 rounded-xl overflow-hidden">
+                        <iframe class="w-full h-full border-0 rounded-xl" :src="youtubeUrl" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    </div>
+                </div>
+
+                <!-- Player Controls & Channel Info -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
+                    <div class="glass-panel px-5 py-3 rounded-2xl flex items-center justify-between shadow-lg md:col-span-1">
+                        <div class="flex items-center gap-5 w-full justify-around">
+                            <button @click="togglePlay()" class="text-slate-300 hover:text-indigo-400 transition text-base cursor-pointer">
+                                <i :class="isPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-play'"></i>
+                            </button>
+                            <button @click="toggleMute()" class="text-slate-300 hover:text-indigo-400 transition text-base cursor-pointer">
+                                <i :class="isMuted ? 'fa-solid fa-volume-xmark text-rose-400' : 'fa-solid fa-volume-high'"></i>
+                            </button>
+                            <button @click="toggleFullscreen()" class="text-slate-300 hover:text-indigo-400 transition text-base cursor-pointer">
+                                <i class="fa-solid fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel px-5 py-3 rounded-2xl flex items-center justify-between shadow-lg md:col-span-2">
+                        <div class="flex items-center gap-3">
+                            <span class="relative flex h-3 w-3">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                            </span>
+                            <div>
+                                <h2 class="text-sm font-bold text-white truncate max-w-[200px]" x-text="currentChannel || 'هیچ کەناڵێک هەڵنەبژێردراوە'"></h2>
+                                <p class="text-[10px] text-slate-400">پەخشی ڕاستەوخۆی Full HD</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded-lg font-bold">LIVE</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <div class="lg:col-span-2 flex flex-col gap-4">
-                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl shadow-xl aspect-video w-full relative overflow-hidden">
-                        <div x-show="!isYoutube" class="w-full h-full">
-                            <video-js id="tvPlayer" class="vjs-big-play-centered" controls preload="auto" data-setup='{}'>
-                                <source :src="currentStream" type="application/x-mpegURL" />
-                            </video-js>
-                        </div>
-                        <div x-show="isYoutube" class="w-full h-full">
-                            <iframe class="w-full h-full rounded-xl border-0" :src="youtubeUrl" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                        </div>
-                    </div>
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
-                        <div>
-                            <h2 class="text-lg font-bold text-white" x-text="currentChannel || (channels.length > 0 ? channels[0].name : 'هیچ کەناڵێک نییە')"></h2>
-                            <p class="text-xs text-slate-400 mt-1">پەخشی ڕاستەوخۆی بە کوالێتی بەرز</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col h-[480px]">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-tv"></i> کەناڵەکان (<span x-text="filteredChannels.length"></span>)
+            <!-- Channels Sidebar -->
+            <div class="glass-panel rounded-2xl p-4 shadow-2xl flex flex-col h-full overflow-hidden border border-white/5">
+                <div class="flex justify-between items-center mb-4 shrink-0 px-1">
+                    <h3 class="text-xs font-extrabold text-slate-300 tracking-wider uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-tv text-indigo-400"></i> لیست کەناڵەکان
                     </h3>
-                    
-                    <div class="grid grid-cols-3 gap-3 overflow-y-auto pr-1">
-                        <template x-for="(channel, index) in filteredChannels" :key="index">
-                            <div @click="changeChannel(channel.name, channel.url, channel.isYt)" 
-                                 class="bg-slate-800/60 border border-slate-700/50 p-2.5 rounded-xl flex flex-col items-center text-center cursor-pointer hover:bg-slate-800 transition group">
-                                <template x-if="channel.image">
-                                    <img :src="channel.image" class="w-12 h-12 rounded-xl object-cover mb-1.5 shadow group-hover:scale-105 transition" />
-                                </template>
-                                <template x-if="!channel.image">
-                                    <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-700 flex items-center justify-center font-bold text-white mb-1.5 shadow group-hover:scale-105 transition" x-text="channel.badge"></div>
-                                </template>
-                                <span class="text-[11px] font-bold text-white truncate w-full" x-text="channel.name"></span>
-                            </div>
-                        </template>
+                    <span class="text-[11px] font-bold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20" x-text="filteredChannels.length + ' کەناڵ'"></span>
+                </div>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3 overflow-y-auto pr-1 flex-1">
+                    <template x-for="(channel, index) in filteredChannels" :key="index">
+                        <div @click="changeChannel(channel.name, channel.url, channel.isYt)" 
+                             class="glass-card p-3 rounded-xl flex flex-col items-center text-center cursor-pointer group">
+                            <template x-if="channel.image">
+                                <img :src="channel.image" class="w-12 h-12 rounded-xl object-cover mb-2.5 shadow-md group-hover:scale-105 transition-transform duration-300" />
+                            </template>
+                            <template x-if="!channel.image">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-purple-700 flex items-center justify-center font-bold text-white mb-2.5 shadow-md group-hover:scale-105 transition-transform duration-300" x-text="channel.badge"></div>
+                            </template>
+                            <span class="text-xs font-bold text-slate-200 group-hover:text-indigo-300 truncate w-full transition" x-text="channel.name"></span>
+                            <span class="text-[9px] text-slate-500 mt-0.5" x-text="channel.category || 'General'"></span>
+                        </div>
+                    </template>
+                    <div x-show="filteredChannels.length === 0" class="col-span-full flex flex-col items-center justify-center py-16 text-slate-500 text-xs">
+                        <i class="fa-solid fa-satellite-dish text-3xl mb-3 text-slate-600"></i>
+                        هیچ کەناڵێک نەدۆزرایەوە
                     </div>
                 </div>
-
             </div>
 
         </main>
 
-        <main x-show="currentTab === 'settings'" class="max-w-4xl w-full mx-auto p-4 md:p-6 my-auto" style="display: none;">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2"><i class="fa-solid fa-gear text-indigo-400"></i> ڕێکخستنەکان و بەڕێوەبردنی کەناڵەکان</h2>
-                <p class="text-xs text-slate-400 mb-6">بۆ زیادکردن، دەستکاری، گۆڕینی شوێن یان سڕینەوەی کەناڵەکان، تکایە کۆدی بەڕێوەبەر (PDK) بنووسە.</p>
+        <!-- Admin / Settings View -->
+        <main x-show="currentTab === 'settings'" class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 overflow-y-auto" style="display: none;">
+            <div class="glass-panel rounded-2xl p-6 md:p-8 shadow-2xl border border-white/5 space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-400"></i> بەڕێوەبردنی کەناڵەکان
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">تکایە کۆدی بەڕێوەبەر (%ADMIN%NOVA%TV%CREATE%) بنووسە بۆ هەموو دەستکارییەکان.</p>
+                </div>
 
-                <div x-show="!isAdminUnlocked" class="space-y-4 max-w-md mx-auto py-10 text-center">
+                <div x-show="!isAdminUnlocked" class="space-y-4 max-w-md mx-auto py-12 text-center">
                     <input 
-                        type="text" 
+                        type="password" 
                         x-model="adminInput" 
                         @keyup.enter="checkAdmin()"
-                        class="code-input w-full px-6 py-3 text-sm"
+                        class="glass-input w-full px-5 py-3 rounded-2xl text-xs text-center font-bold tracking-widest"
                         placeholder="کۆدی بەڕێوەبەر بنووسە"
                     />
-                    <p x-show="adminError" class="text-red-500 text-xs font-semibold">کۆدی بەڕێوەبەر هەڵەیە!</p>
-                    <button type="button" @click="checkAdmin()" class="login-btn w-full py-3 font-semibold text-sm cursor-pointer">چوونەژوورەوە بۆ بەڕێوەبردن</button>
+                    <p x-show="adminError" class="text-rose-400 text-xs font-semibold">کۆدی بەڕێوەبەر هەڵەیە!</p>
+                    <button @click="checkAdmin()" class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 font-bold text-xs text-white shadow-lg shadow-indigo-600/30 transition">چوونەژوورەوەی بەڕێوەبەر</button>
                 </div>
 
                 <div x-show="isAdminUnlocked" class="space-y-6" style="display: none;">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-                        <span class="text-xs text-emerald-400 font-bold flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> دۆخی بەڕێوەبەر چالاکە</span>
-                        <button type="button" @click="lockAdmin()" class="text-xs text-red-400 hover:underline cursor-pointer">دەرچوون لە بەڕێوەبەر</button>
+                    <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                        <span class="text-xs text-emerald-400 font-bold flex items-center gap-1.5"><i class="fa-solid fa-shield-check"></i> دۆخی بەڕێوەبەر چالاکە</span>
+                        <button @click="lockAdmin()" class="text-xs text-rose-400 hover:underline">دەرچوون</button>
                     </div>
 
-                    <div class="bg-slate-800/40 border border-slate-700/50 p-4 rounded-xl space-y-4">
-                        <h3 class="text-sm font-bold text-white">زیادکردنی کەناڵی نوێ</h3>
+                    <!-- Add Channel Form -->
+                    <div class="glass-card p-5 rounded-2xl space-y-4">
+                        <h3 class="text-xs font-bold text-indigo-300 uppercase tracking-wider">زیادکردنی کەناڵی نوێ</h3>
+                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <input type="text" x-model="newChannelName" placeholder="ناوی کەناڵ (بۆ نموونە: Rudaw HD)" class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500" />
-                            <select x-model="newChannelCategory" class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500">
-                                <option value="General">General</option>
-                                <option value="Sports">Sports</option>
-                                <option value="News">News</option>
-                                <option value="Movies">Movies</option>
+                            <input type="text" x-model="newChannelName" placeholder="ناوی کەناڵ (بۆ نموونە: Rudaw)" class="glass-input px-4 py-2.5 rounded-xl text-xs" />
+                            
+                            <div class="flex flex-col gap-1">
+                                <input type="file" id="channelImageInput" @change="handleImageUpload($event, 'new')" accept="image/*" class="glass-input px-3 py-1.5 rounded-xl text-xs file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white cursor-pointer" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input type="text" x-model="newChannelUrl" placeholder="لینکی پەخش (.m3u8 یان iframe)" class="glass-input px-4 py-2.5 rounded-xl text-xs" />
+                            <select x-model="newChannelCategory" class="glass-input px-4 py-2.5 rounded-xl text-xs">
+                                <template x-for="cat in categories.filter(c => c !== 'All')" :key="cat">
+                                    <option :value="cat" x-text="cat" class="bg-slate-900 text-white"></option>
+                                </template>
                             </select>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <input type="text" x-model="newChannelUrl" placeholder="لینکی پەخش (m3u8 یان iframe)" class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500" />
-                            <input type="file" id="channelImageInput" @change="handleImageUpload($event, 'new')" accept="image/*" class="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg text-xs text-slate-300 file:mr-2 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white cursor-pointer" />
+
+                        <div class="flex items-center gap-2 pt-1">
+                            <input type="checkbox" id="isYtCheck" x-model="newChannelIsYt" class="rounded bg-slate-800 border-white/10 text-indigo-600 focus:ring-0" />
+                            <label for="isYtCheck" class="text-xs text-slate-300 cursor-pointer">ئایا ئەمە لینکی یوتیوب/ایفرەیمە؟</label>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" id="isYtCheck" x-model="newChannelIsYt" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                            <label for="isYtCheck" class="text-xs text-slate-300">ئایا ئەمە لینکی یوتیوب/ایفرەیمە؟</label>
-                        </div>
-                        <button type="button" @click.prevent="addChannel()" class="login-btn w-full py-2.5 text-xs font-semibold cursor-pointer">زیادکردنی کەناڵ</button>
+
+                        <button @click="addChannel()" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition">زیادکردنی کەناڵ</button>
                     </div>
 
+                    <!-- Manage Channels List -->
                     <div class="space-y-3">
-                        <h3 class="text-sm font-bold text-white">بەڕێوەبردنی کەناڵەکان</h3>
-                        <div class="max-h-80 overflow-y-auto space-y-2 pr-2">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">لیستی کەناڵە پاشەکەوتکراوەکان</h3>
+                        <div class="max-h-72 overflow-y-auto space-y-2.5 pr-2">
                             <template x-for="(channel, index) in channels" :key="index">
-                                <div class="bg-slate-800/60 border border-slate-700/50 p-3 rounded-xl flex flex-col gap-3">
-                                    
+                                <div class="glass-card p-3 rounded-xl flex flex-col gap-3">
                                     <div class="flex justify-between items-center" x-show="editingIndex !== index">
                                         <div class="flex items-center gap-3">
                                             <template x-if="channel.image">
-                                                <img :src="channel.image" class="w-8 h-8 rounded object-cover shadow" />
+                                                <img :src="channel.image" class="w-9 h-9 rounded-lg object-cover shadow" />
                                             </template>
                                             <template x-if="!channel.image">
-                                                <div class="w-8 h-8 rounded bg-indigo-600 flex items-center justify-center font-bold text-white text-xs" x-text="channel.badge"></div>
+                                                <div class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white text-xs" x-text="channel.badge"></div>
                                             </template>
                                             <div>
                                                 <span class="text-xs font-bold text-white block" x-text="channel.name"></span>
-                                                <span class="text-[10px] text-indigo-400" x-text="channel.category"></span>
+                                                <span class="text-[10px] text-indigo-400" x-text="channel.category || 'General'"></span>
                                             </div>
                                         </div>
+
                                         <div class="flex items-center gap-1.5">
-                                            <button type="button" @click="moveChannel(index, -1)" :disabled="index === 0" class="bg-slate-700/50 border border-slate-600 text-slate-300 px-2.5 py-1 rounded-lg text-xs hover:bg-slate-700 transition disabled:opacity-30 cursor-pointer">
+                                            <button @click="moveChannel(index, -1)" :disabled="index === 0" class="glass-input px-2.5 py-1 rounded-lg text-xs hover:bg-slate-700 transition disabled:opacity-30">
                                                 <i class="fa-solid fa-arrow-up"></i>
                                             </button>
-                                            <button type="button" @click="moveChannel(index, 1)" :disabled="index === channels.length - 1" class="bg-slate-700/50 border border-slate-600 text-slate-300 px-2.5 py-1 rounded-lg text-xs hover:bg-slate-700 transition disabled:opacity-30 cursor-pointer">
+                                            <button @click="moveChannel(index, 1)" :disabled="index === channels.length - 1" class="glass-input px-2.5 py-1 rounded-lg text-xs hover:bg-slate-700 transition disabled:opacity-30">
                                                 <i class="fa-solid fa-arrow-down"></i>
                                             </button>
-                                            <button type="button" @click="startEdit(index)" class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-2.5 py-1 rounded-lg text-xs hover:bg-indigo-500/20 transition cursor-pointer">دەستکاری</button>
-                                            <button type="button" @click="deleteChannel(index)" class="bg-red-500/10 border border-red-500/20 text-red-400 px-2.5 py-1 rounded-lg text-xs hover:bg-red-500/20 transition cursor-pointer">سڕینەوە</button>
+                                            <button @click="startEdit(index)" class="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-3 py-1 rounded-lg text-xs hover:bg-indigo-500/20 transition">دەستکاری</button>
+                                            <button @click="deleteChannel(index)" class="bg-rose-500/10 border border-rose-500/20 text-rose-400 px-3 py-1 rounded-lg text-xs hover:bg-rose-500/20 transition">سڕینەوە</button>
                                         </div>
                                     </div>
 
+                                    <!-- Edit Form -->
                                     <div x-show="editingIndex === index" class="space-y-3 bg-slate-900/80 p-3 rounded-lg border border-indigo-500/30" style="display: none;">
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                            <input type="text" x-model="editName" placeholder="ناوی کەناڵ" class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded text-xs text-white focus:outline-none focus:border-indigo-500" />
-                                            <select x-model="editCategory" class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded text-xs text-white focus:outline-none focus:border-indigo-500">
-                                                <option value="General">General</option>
-                                                <option value="Sports">Sports</option>
-                                                <option value="News">News</option>
-                                                <option value="Movies">Movies</option>
+                                            <input type="text" x-model="editName" placeholder="ناوی کەناڵ" class="glass-input px-3 py-1.5 rounded text-xs" />
+                                            <input type="file" @change="handleImageUpload($event, 'edit')" accept="image/*" class="glass-input px-2 py-1 rounded text-xs cursor-pointer" />
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            <input type="text" x-model="editUrl" placeholder="لینکی پەخش" class="glass-input px-3 py-1.5 rounded text-xs" />
+                                            <select x-model="editCategory" class="glass-input px-3 py-1.5 rounded text-xs">
+                                                <template x-for="cat in categories.filter(c => c !== 'All')" :key="cat">
+                                                    <option :value="cat" x-text="cat" class="bg-slate-900 text-white"></option>
+                                                </template>
                                             </select>
                                         </div>
-                                        <input type="text" x-model="editUrl" placeholder="لینکی پەخش" class="bg-slate-800 border border-slate-700 w-full px-3 py-1.5 rounded text-xs text-white focus:outline-none focus:border-indigo-500" />
-                                        <div class="flex items-center justify-between">
-                                            <input type="file" @change="handleImageUpload($event, 'edit')" accept="image/*" class="bg-slate-800 border border-slate-700 px-2 py-1 rounded text-xs text-slate-300 cursor-pointer" />
-                                            <div class="flex items-center gap-2">
-                                                <input type="checkbox" :id="'editYt_' + index" x-model="editIsYt" class="rounded bg-slate-800 border-slate-700 text-indigo-600" />
-                                                <label :for="'editYt_' + index" class="text-xs text-slate-300">یوتیوبە؟</label>
-                                            </div>
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" :id="'editYt_' + index" x-model="editIsYt" class="rounded bg-slate-800 text-indigo-600" />
+                                            <label :for="'editYt_' + index" class="text-xs text-slate-300">یوتیوب/ایفرەیمە؟</label>
                                         </div>
                                         <div class="flex justify-end gap-2">
-                                            <button type="button" @click="cancelEdit()" class="bg-slate-700 text-slate-300 px-3 py-1 rounded text-xs cursor-pointer">پاشگەزبوونەوە</button>
-                                            <button type="button" @click.prevent="saveEdit(index)" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-semibold cursor-pointer">پاشەکەوتکردن</button>
+                                            <button @click="cancelEdit()" class="glass-input px-3 py-1 rounded text-xs">پاشگەزبوونەوە</button>
+                                            <button @click="saveEdit(index)" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs font-semibold">پاشەکەوتکردن</button>
                                         </div>
                                     </div>
 
@@ -472,16 +619,21 @@
             </div>
         </main>
 
-        <nav class="bg-slate-900 border-t border-slate-800 py-3 px-6 flex justify-around items-center text-xs text-slate-400">
-            <button type="button" @click="currentTab = 'livetv'" :class="currentTab === 'livetv' ? 'text-indigo-400' : 'hover:text-white'" class="flex flex-col items-center gap-1 bg-transparent border-0 cursor-pointer"><i class="fa-solid fa-house text-lg"></i>Live TV</button>
-            <a href="#" class="flex flex-col items-center gap-1 hover:text-white"><i class="fa-solid fa-film text-lg"></i>Movies</a>
-            <a href="#" class="flex flex-col items-center gap-1 hover:text-white"><i class="fa-solid fa-tv text-lg"></i>Series</a>
-            <a href="#" class="flex flex-col items-center gap-1 hover:text-white"><i class="fa-solid fa-user text-lg"></i>Profile</a>
-            <button type="button" @click="currentTab = 'settings'" :class="currentTab === 'settings' ? 'text-indigo-400' : 'hover:text-white'" class="flex flex-col items-center gap-1 bg-transparent border-0 cursor-pointer"><i class="fa-solid fa-gear text-lg"></i>Settings</button>
+        <!-- Bottom Navigation Bar -->
+        <nav class="glass-panel py-3 px-8 flex justify-around items-center text-xs text-slate-400 shrink-0 border-t border-white/5 z-20">
+            <button @click="currentTab = 'livetv'" :class="currentTab === 'livetv' ? 'text-indigo-400 font-bold' : 'hover:text-slate-200'" class="flex flex-col items-center gap-1 bg-transparent border-0 cursor-pointer transition">
+                <i class="fa-solid fa-play text-base"></i>
+                پەخشی ڕاستەوخۆ
+            </button>
+            <button @click="currentTab = 'settings'" :class="currentTab === 'settings' ? 'text-indigo-400 font-bold' : 'hover:text-slate-200'" class="flex flex-col items-center gap-1 bg-transparent border-0 cursor-pointer transition">
+                <i class="fa-solid fa-sliders text-base"></i>
+                ڕێکخستنەکان
+            </button>
         </nav>
 
     </div>
 
+    <!-- Video.js Script -->
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script>
         videojs.options.html5 = { nativeAudioTracks: false, nativeVideoTracks: false };
@@ -490,3 +642,4 @@
 
 </body>
 </html>
+```

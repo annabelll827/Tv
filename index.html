@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nova TV</title>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Video.js -->
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
-    
+
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -56,6 +56,13 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spin {
+            animation: spin 0.8s linear infinite;
+        }
     </style>
 </head>
 <body class="min-h-screen w-screen overflow-x-hidden pb-28 bg-[#0b0f19]"
@@ -64,7 +71,7 @@
           searchQuery: '',
           selectedCategory: 'All',
           categories: ['All', 'Sports', 'News', 'Movies', 'General', 'Kids'],
-          
+
           // Player State
           activeChannelName: '',
           isPlayingModal: false,
@@ -74,16 +81,16 @@
 
           // Admin Modal State
           showAdminModal: false,
-          isAdminUnlocked: localStorage.getItem('nova_tv_admin') === 'true',
+          isAdminUnlocked: false,
           adminInput: '',
           adminError: false,
-          
+
           newChannelName: '',
           newChannelUrl: '',
           newChannelImage: '',
           newChannelIsYt: false,
           newChannelCategory: 'General',
-          
+
           editingIndex: null,
           editName: '',
           editUrl: '',
@@ -91,8 +98,11 @@
           editIsYt: false,
           editCategory: 'General',
 
-          // Empty Channels Array (No default channels)
-          channels: JSON.parse(localStorage.getItem('nova_channels')) || [],
+          // Channels are stored SHARED so every visitor sees the same list
+          channels: [],
+          isLoading: true,
+          loadError: false,
+          isSaving: false,
 
           // Encryption / Obfuscation helper for Stream URLs
           encodeData(str) {
@@ -107,6 +117,46 @@
               } catch(e) { return str; }
           },
 
+          async init() {
+              // Load shared channel list (visible to everyone using this app)
+              await this.loadChannels();
+              // Load this device's own admin-unlock state (private, not shared)
+              try {
+                  const res = await window.storage.get('admin_unlocked', false);
+                  if (res && res.value === 'true') this.isAdminUnlocked = true;
+              } catch (e) {
+                  // key not found yet, stay locked
+              }
+          },
+
+          async loadChannels() {
+              this.isLoading = true;
+              this.loadError = false;
+              try {
+                  const res = await window.storage.get('channels', true);
+                  this.channels = res && res.value ? JSON.parse(res.value) : [];
+              } catch (e) {
+                  // key doesn't exist yet -> no channels added so far
+                  this.channels = [];
+              } finally {
+                  this.isLoading = false;
+              }
+          },
+
+          async persistChannels() {
+              this.isSaving = true;
+              try {
+                  const result = await window.storage.set('channels', JSON.stringify(this.channels), true);
+                  if (!result) {
+                      this.loadError = true;
+                  }
+              } catch (e) {
+                  this.loadError = true;
+              } finally {
+                  this.isSaving = false;
+              }
+          },
+
           get filteredChannels() {
               return this.channels.filter(ch => {
                   const matchesSearch = ch.name.toLowerCase().includes(this.searchQuery.toLowerCase());
@@ -119,7 +169,7 @@
               this.activeChannelName = channel.name;
               this.isYoutube = channel.isYt;
               this.isPlayingModal = true;
-              
+
               const rawUrl = this.decodeData(channel.url);
 
               if (channel.isYt) {
@@ -144,24 +194,28 @@
               if (window.player) window.player.pause();
           },
 
-          checkAdmin() {
+          async checkAdmin() {
               if (this.adminInput.trim() === 'Vision Labs Krd') {
                   this.isAdminUnlocked = true;
-                  localStorage.setItem('nova_tv_admin', 'true');
                   this.adminError = false;
                   this.showAdminModal = false;
                   this.adminInput = '';
                   this.currentTab = 'settings';
+                  try {
+                      await window.storage.set('admin_unlocked', 'true', false);
+                  } catch (e) { /* non-fatal */ }
               } else {
                   this.adminError = true;
               }
           },
 
-          lockAdmin() {
+          async lockAdmin() {
               this.isAdminUnlocked = false;
-              localStorage.removeItem('nova_tv_admin');
               this.adminInput = '';
               this.currentTab = 'livetv';
+              try {
+                  await window.storage.delete('admin_unlocked', false);
+              } catch (e) { /* non-fatal */ }
           },
 
           handleImageUpload(event, type) {
@@ -176,9 +230,9 @@
               }
           },
 
-          addChannel() {
+          async addChannel() {
               if (!this.newChannelName || !this.newChannelUrl) return;
-              
+
               const newCh = {
                   name: this.newChannelName,
                   url: this.encodeData(this.newChannelUrl.trim()),
@@ -188,7 +242,7 @@
               };
 
               this.channels.push(newCh);
-              localStorage.setItem('nova_channels', JSON.stringify(this.channels));
+              await this.persistChannels();
 
               this.newChannelName = '';
               this.newChannelUrl = '';
@@ -213,7 +267,7 @@
               this.editingIndex = null;
           },
 
-          saveEdit(index) {
+          async saveEdit(index) {
               if (!this.editName || !this.editUrl) return;
               this.channels[index] = {
                   name: this.editName,
@@ -222,21 +276,21 @@
                   isYt: this.editIsYt,
                   category: this.editCategory
               };
-              localStorage.setItem('nova_channels', JSON.stringify(this.channels));
+              await this.persistChannels();
               this.cancelEdit();
           },
 
-          deleteChannel(index) {
+          async deleteChannel(index) {
               this.channels.splice(index, 1);
-              localStorage.setItem('nova_channels', JSON.stringify(this.channels));
+              await this.persistChannels();
           },
 
-          moveChannel(index, direction) {
+          async moveChannel(index, direction) {
               const newIndex = index + direction;
               if (newIndex < 0 || newIndex >= this.channels.length) return;
               const item = this.channels.splice(index, 1)[0];
               this.channels.splice(newIndex, 0, item);
-              localStorage.setItem('nova_channels', JSON.stringify(this.channels));
+              await this.persistChannels();
           }
       }">
 
@@ -251,16 +305,16 @@
             <span class="absolute inset-y-0 left-3.5 flex items-center text-slate-400 pointer-events-none">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </span>
-            <input 
-                type="text" 
-                x-model="searchQuery" 
-                placeholder="Search channels..." 
+            <input
+                type="text"
+                x-model="searchQuery"
+                placeholder="Search channels..."
                 class="w-full bg-[#161c2e] border border-slate-800 text-xs text-white pl-9 pr-4 py-2.5 rounded-full focus:outline-none focus:border-cyan-500 transition-all placeholder:text-slate-500"
             />
         </div>
 
         <!-- Hidden Admin Trigger Button -->
-        <button @click="if(!isAdminUnlocked){ showAdminModal = true; adminError = false; } else { currentTab = 'settings'; }" 
+        <button @click="if(!isAdminUnlocked){ showAdminModal = true; adminError = false; } else { currentTab = 'settings'; }"
                 :class="isAdminUnlocked ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40' : 'bg-[#161c2e] text-slate-400 border-slate-800 hover:text-white'"
                 class="w-10 h-10 rounded-full border flex items-center justify-center transition shrink-0">
             <i class="fa-solid fa-user-shield text-sm"></i>
@@ -269,11 +323,11 @@
 
     <!-- Main Content Tab: Live TV -->
     <main x-show="currentTab === 'livetv'" class="max-w-6xl mx-auto px-4 mt-5">
-        
+
         <!-- Category Filter Pills -->
         <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-3">
             <template x-for="cat in categories" :key="cat">
-                <button 
+                <button
                     @click="selectedCategory = cat"
                     :class="selectedCategory === cat ? 'bg-[#00a8ff] text-white font-bold shadow-lg shadow-cyan-500/25 border-[#00a8ff]' : 'bg-[#161c2e]/80 text-slate-400 hover:text-white border-slate-800'"
                     class="px-5 py-2 rounded-full text-xs transition-all border shrink-0"
@@ -282,15 +336,21 @@
             </template>
         </div>
 
+        <!-- Loading State -->
+        <div x-show="isLoading" class="flex flex-col items-center justify-center py-20 text-slate-500 text-xs">
+            <i class="fa-solid fa-circle-notch spin text-3xl mb-3 text-cyan-500"></i>
+            بارکردن...
+        </div>
+
         <!-- Channel Cards Grid (3 Columns on Mobile) -->
-        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 md:gap-4 mt-3">
+        <div x-show="!isLoading" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 md:gap-4 mt-3">
             <template x-for="(channel, index) in filteredChannels" :key="index">
-                <div @click="openPlayer(channel)" 
+                <div @click="openPlayer(channel)"
                      class="group relative aspect-square bg-[#161c2e] rounded-2xl overflow-hidden border border-slate-800/80 cursor-pointer shadow-md active:scale-95 transition-all duration-200">
-                    
+
                     <!-- Channel Image Cover -->
                     <img :src="channel.image" :alt="channel.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    
+
                     <!-- Bottom Dark Gradient & Title -->
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-2 text-center">
                         <span class="text-[11px] md:text-xs font-bold text-white tracking-wide truncate w-full drop-shadow" x-text="channel.name"></span>
@@ -300,7 +360,7 @@
         </div>
 
         <!-- Empty State -->
-        <div x-show="filteredChannels.length === 0" class="flex flex-col items-center justify-center py-20 text-slate-500 text-xs">
+        <div x-show="!isLoading && filteredChannels.length === 0" class="flex flex-col items-center justify-center py-20 text-slate-500 text-xs">
             <i class="fa-solid fa-tv text-4xl mb-3 text-slate-600"></i>
             هیچ کەناڵێک بەردەست نییە
         </div>
@@ -339,10 +399,15 @@
                 </button>
             </div>
 
+            <p class="text-[10px] text-amber-400/80 bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2">
+                <i class="fa-solid fa-circle-info mr-1"></i>
+                کەناڵێک کە زیادی بکەیت بۆ هەموو بەکارهێنەرانی ئەم ئەپە دیارە، نەک تەنها بۆ خۆت.
+            </p>
+
             <!-- Add Channel Form -->
             <div class="bg-[#0b0f19] p-4 rounded-2xl border border-slate-800 space-y-3">
                 <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wider">زیادکردنی کەناڵی نوێ</h3>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <input type="text" x-model="newChannelName" placeholder="ناوی کەناڵ" class="bg-[#161c2e] border border-slate-700 px-3.5 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-cyan-500" />
                     <input type="file" id="channelImageInput" @change="handleImageUpload($event, 'new')" accept="image/*" class="bg-[#161c2e] border border-slate-700 px-3 py-1 rounded-xl text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-cyan-500 file:text-white cursor-pointer" />
@@ -362,7 +427,10 @@
                     <label for="isYtCheck" class="text-xs text-slate-300 cursor-pointer">ئایا ئەمە لینکی یوتیوب/ایفرەیمە؟</label>
                 </div>
 
-                <button @click="addChannel()" class="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition">زیادکردنی کەناڵ</button>
+                <button @click="addChannel()" :disabled="isSaving" class="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition">
+                    <span x-show="!isSaving">زیادکردنی کەناڵ</span>
+                    <span x-show="isSaving"><i class="fa-solid fa-circle-notch spin"></i> پاشەکەوتکردن...</span>
+                </button>
             </div>
 
             <!-- Manage Existing Channels -->
@@ -430,9 +498,9 @@
             </div>
 
             <div class="w-full space-y-2">
-                <input 
-                    type="password" 
-                    x-model="adminInput" 
+                <input
+                    type="password"
+                    x-model="adminInput"
                     @keyup.enter="checkAdmin()"
                     class="w-full bg-[#0b0f19] border border-slate-700 px-4 py-3 rounded-2xl text-xs text-center font-bold text-white focus:outline-none focus:border-cyan-500"
                     placeholder="کۆدەکە بنووسە"
@@ -476,34 +544,34 @@
 
     <!-- Floating Navigation Bar -->
     <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-[#161c2e]/90 backdrop-blur-2xl border border-slate-700/60 rounded-full px-5 py-2.5 flex items-center justify-between gap-6 shadow-2xl shadow-black/80">
-        
+
         <!-- Live TV -->
-        <button @click="currentTab = 'livetv'" 
-                :class="currentTab === 'livetv' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'" 
+        <button @click="currentTab = 'livetv'"
+                :class="currentTab === 'livetv' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="flex flex-col items-center gap-1 transition">
             <i class="fa-solid fa-house text-lg"></i>
             <span class="text-[10px]">Live TV</span>
         </button>
 
         <!-- Movies -->
-        <button @click="currentTab = 'movies'" 
-                :class="currentTab === 'movies' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'" 
+        <button @click="currentTab = 'movies'"
+                :class="currentTab === 'movies' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="flex flex-col items-center gap-1 transition">
             <i class="fa-solid fa-border-all text-lg"></i>
             <span class="text-[10px]">Movies</span>
         </button>
 
         <!-- Series -->
-        <button @click="currentTab = 'series'" 
-                :class="currentTab === 'series' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'" 
+        <button @click="currentTab = 'series'"
+                :class="currentTab === 'series' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="flex flex-col items-center gap-1 transition">
             <i class="fa-solid fa-tv text-lg"></i>
             <span class="text-[10px]">Series</span>
         </button>
 
         <!-- Profile -->
-        <button @click="currentTab = 'profile'" 
-                :class="currentTab === 'profile' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'" 
+        <button @click="currentTab = 'profile'"
+                :class="currentTab === 'profile' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="flex flex-col items-center gap-1 transition relative">
             <i class="fa-regular fa-user text-lg"></i>
             <span class="text-[10px]">Profile</span>
@@ -511,8 +579,8 @@
         </button>
 
         <!-- Settings (Only triggers Modal if locked, or opens Settings panel if unlocked) -->
-        <button @click="if(!isAdminUnlocked){ showAdminModal = true; adminError = false; } else { currentTab = 'settings'; }" 
-                :class="currentTab === 'settings' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'" 
+        <button @click="if(!isAdminUnlocked){ showAdminModal = true; adminError = false; } else { currentTab = 'settings'; }"
+                :class="currentTab === 'settings' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="flex flex-col items-center gap-1 transition">
             <i class="fa-solid fa-gear text-lg"></i>
             <span class="text-[10px]">Settings</span>
@@ -528,4 +596,3 @@
     </script>
 </body>
 </html>
-```

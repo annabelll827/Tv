@@ -99,7 +99,15 @@
           editCategory: 'General',
 
           // Channels are stored SHARED so every visitor sees the same list
-          channels: [],
+          channels: [
+              {
+                  name: 'AVA Media',
+                  url: btoa(encodeURIComponent('Https://live.kurdtips.uno/proxy.php?url=http%3A%2F%2Fhlspackager.akamaized.net%2Flive%2FDB%2FAVA_TV%2FHLS%2FAVA_TV-avc1_2500000%3D10002%2Cmp4a_128000%3D20000.m3u8&ext=.m3u8')),
+                  image: 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=300&auto=format&fit=crop&q=60',
+                  isYt: false,
+                  category: 'News'
+              }
+          ],
           isLoading: true,
           loadError: false,
           isSaving: false,
@@ -118,15 +126,11 @@
           },
 
           async init() {
-              // Load shared channel list (visible to everyone using this app)
               await this.loadChannels();
-              // Load this device's own admin-unlock state (private, not shared)
               try {
                   const res = await window.storage.get('admin_unlocked', false);
                   if (res && res.value === 'true') this.isAdminUnlocked = true;
-              } catch (e) {
-                  // key not found yet, stay locked
-              }
+              } catch (e) {}
           },
 
           async loadChannels() {
@@ -134,10 +138,14 @@
               this.loadError = false;
               try {
                   const res = await window.storage.get('channels', true);
-                  this.channels = res && res.value ? JSON.parse(res.value) : [];
+                  if (res && res.value) {
+                      this.channels = JSON.parse(res.value);
+                  } else {
+                      // Save default initial channel if storage is empty
+                      await this.persistChannels();
+                  }
               } catch (e) {
-                  // key doesn't exist yet -> no channels added so far
-                  this.channels = [];
+                  // Keep default channel
               } finally {
                   this.isLoading = false;
               }
@@ -195,7 +203,7 @@
           },
 
           async checkAdmin() {
-              if (this.adminInput.trim() === 'Vision Labs Krd') {
+              if (this.adminInput.trim() === 'PDK') {
                   this.isAdminUnlocked = true;
                   this.adminError = false;
                   this.showAdminModal = false;
@@ -203,7 +211,7 @@
                   this.currentTab = 'settings';
                   try {
                       await window.storage.set('admin_unlocked', 'true', false);
-                  } catch (e) { /* non-fatal */ }
+                  } catch (e) {}
               } else {
                   this.adminError = true;
               }
@@ -215,7 +223,7 @@
               this.currentTab = 'livetv';
               try {
                   await window.storage.delete('admin_unlocked', false);
-              } catch (e) { /* non-fatal */ }
+              } catch (e) {}
           },
 
           handleImageUpload(event, type) {
@@ -342,7 +350,7 @@
             بارکردن...
         </div>
 
-        <!-- Channel Cards Grid (3 Columns on Mobile) -->
+        <!-- Channel Cards Grid -->
         <div x-show="!isLoading" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 md:gap-4 mt-3">
             <template x-for="(channel, index) in filteredChannels" :key="index">
                 <div @click="openPlayer(channel)"
@@ -387,7 +395,7 @@
         <p class="text-xs text-slate-500 mt-1">زانیاری هەژمارەکەت</p>
     </main>
 
-    <!-- Settings Tab (Admin Panel Only Available when Logged In) -->
+    <!-- Settings Tab -->
     <main x-show="currentTab === 'settings'" class="max-w-3xl mx-auto px-4 mt-6">
         <div x-show="isAdminUnlocked" class="bg-[#161c2e] border border-slate-800 rounded-3xl p-5 md:p-7 shadow-2xl space-y-6">
             <div class="border-b border-slate-800 pb-4 flex justify-between items-center">
@@ -544,8 +552,6 @@
 
     <!-- Floating Navigation Bar -->
     <nav class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-[#161c2e]/90 backdrop-blur-2xl border border-slate-700/60 rounded-full px-5 py-2.5 flex items-center justify-between gap-6 shadow-2xl shadow-black/80">
-
-        <!-- Live TV -->
         <button @click="currentTab = 'livetv'"
                 :class="currentTab === 'livetv' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="flex flex-col items-center gap-1 transition">
@@ -553,7 +559,6 @@
             <span class="text-[10px]">Live TV</span>
         </button>
 
-        <!-- Movies -->
         <button @click="currentTab = 'movies'"
                 :class="currentTab === 'movies' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="flex flex-col items-center gap-1 transition">
@@ -561,7 +566,6 @@
             <span class="text-[10px]">Movies</span>
         </button>
 
-        <!-- Series -->
         <button @click="currentTab = 'series'"
                 :class="currentTab === 'series' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="flex flex-col items-center gap-1 transition">
@@ -569,7 +573,6 @@
             <span class="text-[10px]">Series</span>
         </button>
 
-        <!-- Profile -->
         <button @click="currentTab = 'profile'"
                 :class="currentTab === 'profile' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="flex flex-col items-center gap-1 transition relative">
@@ -578,14 +581,12 @@
             <span class="absolute -top-1 -right-2 bg-amber-500 text-black font-extrabold text-[8px] px-1 rounded-sm">B</span>
         </button>
 
-        <!-- Settings (Only triggers Modal if locked, or opens Settings panel if unlocked) -->
         <button @click="if(!isAdminUnlocked){ showAdminModal = true; adminError = false; } else { currentTab = 'settings'; }"
                 :class="currentTab === 'settings' ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="flex flex-col items-center gap-1 transition">
             <i class="fa-solid fa-gear text-lg"></i>
             <span class="text-[10px]">Settings</span>
         </button>
-
     </nav>
 
     <!-- Video.js Script Initialization -->

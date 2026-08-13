@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ku" dir="ltr">
-<head> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nova TV</title>
 
     <!-- Tailwind CSS -->
@@ -863,8 +865,8 @@
             بارکردن...
         </div>
 
-        <!-- Channel Cards Grid -->
-        <div x-show="!isLoading" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 md:gap-4 mt-3">
+        <!-- Channel Cards Grid (3 per row) -->
+        <div x-show="!isLoading" class="grid grid-cols-3 gap-3 md:gap-4 mt-3">
             <template x-for="(channel, index) in filteredChannels" :key="index">
                 <div @click="openPlayer(channel)"
                      class="group relative aspect-square bg-[#161c2e] rounded-2xl overflow-hidden border border-slate-800/80 cursor-pointer shadow-md active:scale-95 transition-all duration-200">
@@ -874,7 +876,7 @@
 
                     <!-- Bottom Dark Gradient & Title -->
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent flex flex-col justify-end p-2 text-center">
-                        <span class="text-[11px] md:text-xs font-bold text-white tracking-wide truncate w-full drop-shadow" x-text="channel.name"></span>
+                        <span class="text-[11px] md:text-sm font-bold text-white tracking-wide truncate w-full drop-shadow" x-text="channel.name"></span>
                     </div>
                 </div>
             </template>

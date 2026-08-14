@@ -148,7 +148,7 @@
                 },
                 {
                     name: 'Kurdistan 24',
-                    url: btoa(encodeURIComponent('https://live.kurdtips.uno/proxy.php?stream=aHR0cDovL3Byby5wcmluY2U0ay5jb206NzM1NS9saXZlL1BSMjEzMDU0NzI2ODEwLzM4MjY2MDc5MjcyMDIvMjIxNTI0Lm0zdTg&ext=.m3u8')),
+                    url: btoa(encodeURIComponent('https://hlspackager.akamaized.net/live/DB/K24/HLS/K24-avc1_2500000=10002,mp4a_128000=20000.m3u8')),
                     image: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=300&auto=format&fit=crop&q=60',
                     isYt: false,
                     category: 'News'
